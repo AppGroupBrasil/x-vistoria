@@ -1,0 +1,15 @@
+# Only web/ and site/ are needed for the web container build
+api/
+pwa/
+.git/
+*.md
+deploy.sh
+docker-compose*.yml
+schema.sql
+.env
+.env.*
+
+# Node artifacts
+**/node_modules/
+**/dist/
+**/.cache/

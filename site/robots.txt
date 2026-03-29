@@ -1,0 +1,7 @@
+# X Vistoria — Site Principal
+# https://xvistoria.com.br
+
+User-agent: *
+Allow: /
+
+Sitemap: https://xvistoria.com.br/sitemap.xml

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a2e; font-size: 11px; }
+
+  .header { background: #1E3A5F; color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo { width: 54px; height: 54px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .header-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .header-logo .placeholder { font-size: 18px; font-weight: 800; color: rgba(255,255,255,0.5); }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .subtitle { font-size: 9px; opacity: 0.7; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .header .right { text-align: right; font-size: 9px; opacity: 0.85; }
+
+  .titulo-bar { background: #f0f4f8; padding: 12px 24px; border-bottom: 2px solid #1E3A5F; }
+  .titulo-bar h2 { font-size: 13px; font-weight: 700; color: #1E3A5F; margin-bottom: 4px; }
+  .titulo-bar .meta { display: flex; gap: 20px; font-size: 10px; color: #6b7280; flex-wrap: wrap; }
+  .titulo-bar .meta strong { color: #1E3A5F; }
+
+  .info-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #d1d5db; }
+  .info-field { padding: 8px 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: baseline; gap: 6px; }
+  .info-field .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.4px; color: #6b7280; white-space: nowrap; font-weight: 600; }
+  .info-field .line { flex: 1; border-bottom: 1px solid #9ca3af; min-height: 14px; }
+  .info-field .value { font-size: 11px; font-weight: 600; color: #1E3A5F; }
+
+  .section { padding: 10px 24px; }
+  .section-title { font-size: 12px; font-weight: 700; color: #1E3A5F; border-bottom: 2px solid #1E3A5F; padding-bottom: 3px; margin-bottom: 8px; }
+
+  .categoria { margin-bottom: 12px; page-break-inside: avoid; }
+  .categoria-nome { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: white; background: #374151; padding: 4px 10px; border-radius: 4px; margin-bottom: 4px; }
+
+  .pergunta { border-bottom: 1px solid #e5e7eb; padding: 6px 0; page-break-inside: avoid; }
+  .pergunta:last-child { border-bottom: none; }
+  .pergunta-header { display: flex; align-items: flex-start; gap: 8px; }
+  .pergunta-num { flex-shrink: 0; width: 22px; height: 22px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #374151; }
+  .pergunta-texto { font-size: 11px; font-weight: 600; color: #1f2937; flex: 1; line-height: 1.4; padding-top: 2px; }
+
+  .resposta-area { margin-left: 30px; margin-top: 4px; }
+  .checkboxes { display: flex; gap: 16px; margin-bottom: 4px; }
+  .checkbox-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #374151; }
+  .checkbox { width: 14px; height: 14px; border: 1.5px solid #374151; border-radius: 3px; display: inline-block; }
+
+  .linhas-escrita { margin-top: 4px; }
+  .linha { border-bottom: 1px solid #c4c8cc; height: 20px; width: 100%; }
+
+  .assinatura-section { padding: 24px 24px 16px; page-break-inside: avoid; }
+  .assinatura-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 16px; }
+  .assinatura-campo { text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 10px; background: #f8f9fb; }
+  .assinatura-digital-label { font-size: 7px; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 6px; }
+  .assinatura-nome { font-size: 11px; font-weight: 700; color: #1E3A5F; }
+  .assinatura-cargo { font-size: 9px; color: #6b7280; margin-top: 2px; }
+  .assinatura-doc { font-size: 8px; color: #9ca3af; margin-top: 2px; }
+  .assinatura-img { max-width: 160px; max-height: 50px; margin: 6px auto 4px; }
+  .assinatura-selo { display: inline-block; margin-top: 6px; padding: 2px 8px; background: #1E3A5F; color: white; border-radius: 4px; font-size: 7px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .footer { background: #1E3A5F; color: white; padding: 8px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 8px; opacity: 0.9; position: fixed; bottom: 0; left: 0; right: 0; }
+
+  @media print {
+    .footer { position: fixed; }
+    .pergunta { page-break-inside: avoid; }
+    .categoria { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      {{#if visita.empresa_logo}}<img src="{{visita.empresa_logo}}" alt="Logo" />{{else}}<span class="placeholder">Logo</span>{{/if}}
+    </div>
+    <div>
+      <h1>X <span style="color: #00D68F;">Vistoria</span></h1>
+      <div style="color: #ffffff; font-size: 10px; font-weight: 600; letter-spacing: 2px; margin-top: -2px;">CONDOMINIAL</div>
+      <div class="subtitle">Questionário de Vistoria — Preenchimento Manual</div>
+    </div>
+  </div>
+  <div class="right">
+    {{visita.empresa_nome}}<br>
+    Protocolo: <strong>#{{visita.protocolo}}</strong><br>
+    Impresso em {{data_geracao}}
+  </div>
+</div>
+
+<div class="titulo-bar">
+  <h2>{{visita.condominio_nome}}</h2>
+  <div class="meta">
+    <span>📍 <strong>{{visita.endereco}}{{#if visita.cidade}}, {{visita.cidade}}/{{visita.estado}}{{/if}}</strong></span>
+    {{#if visita.titulo}}<span>📋 {{visita.titulo}}</span>{{/if}}
+  </div>
+</div>
+
+<div class="info-fields">
+  <div class="info-field">
+    <span class="label">Supervisor:</span>
+    <span class="value">{{visita.supervisor_nome}}</span>
+  </div>
+  <div class="info-field">
+    <span class="label">Data da Vistoria:</span>
+    <span class="line"></span>
+  </div>
+  <div class="info-field">
+    <span class="label">Hora Início:</span>
+    <span class="line"></span>
+  </div>
+  <div class="info-field">
+    <span class="label">Hora Fim:</span>
+    <span class="line"></span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Checklist de Vistoria</div>
+
+  {{#each categorias}}
+  <div class="categoria">
+    <div class="categoria-nome">{{this.nome}} ({{this.itens.length}} perguntas)</div>
+    {{#each this.itens}}
+    <div class="pergunta">
+      <div class="pergunta-header">
+        <div class="pergunta-num">{{this.num}}</div>
+        <div class="pergunta-texto">{{this.texto}}</div>
+      </div>
+      <div class="resposta-area">
+        <div class="checkboxes">
+          <div class="checkbox-item"><span class="checkbox"></span> Conforme</div>
+          <div class="checkbox-item"><span class="checkbox"></span> Não Conforme</div>
+          <div class="checkbox-item"><span class="checkbox"></span> N/A</div>
+        </div>
+        <div class="linhas-escrita">
+          <div class="linha"></div>
+          <div class="linha"></div>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</div>
+
+<div class="section">
+  <div class="section-title">Observações Gerais</div>
+  <div class="linhas-escrita">
+    <div class="linha"></div>
+    <div class="linha"></div>
+    <div class="linha"></div>
+    <div class="linha"></div>
+    <div class="linha"></div>
+    <div class="linha"></div>
+  </div>
+</div>
+
+<div class="assinatura-section">
+  <div class="section-title">Assinaturas Digitais</div>
+  <div class="assinatura-grid">
+    <div class="assinatura-campo">
+      <div class="assinatura-digital-label">Assinatura Digital — Vistoriador</div>
+      <div class="assinatura-nome">{{visita.supervisor_nome}}</div>
+      {{#if visita.supervisor_cargo}}<div class="assinatura-cargo">{{visita.supervisor_cargo}}</div>{{/if}}
+      {{#if visita.supervisor_documento}}<div class="assinatura-doc">CNPJ/CPF: {{visita.supervisor_documento}}</div>{{/if}}
+      <div class="assinatura-selo">✓ ASSINADO DIGITALMENTE</div>
+    </div>
+    <div class="assinatura-campo">
+      <div class="assinatura-digital-label">Assinatura Digital — Administrador</div>
+      {{#if assinatura_admin.nome}}
+      {{#if assinatura_admin.img}}<img class="assinatura-img" src="{{assinatura_admin.img}}" alt="Assinatura" />{{/if}}
+      <div class="assinatura-nome">{{assinatura_admin.nome}}</div>
+      {{#if assinatura_admin.cargo}}<div class="assinatura-cargo">{{assinatura_admin.cargo}}</div>{{/if}}
+      {{#if assinatura_admin.documento}}<div class="assinatura-doc">CNPJ/CPF: {{assinatura_admin.documento}}</div>{{/if}}
+      <div class="assinatura-selo">✓ ASSINADO DIGITALMENTE</div>
+      {{else}}
+      <div class="assinatura-nome" style="color: #9ca3af;">Não configurado</div>
+      <div class="assinatura-cargo">Configure em Configurações</div>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>X Vistoria Condominial · xvistoria.com.br</span>
+  <span>{{visita.empresa_nome}}</span>
+  <span>Protocolo #{{visita.protocolo}}</span>
+</div>
+
+</body>
+</html>

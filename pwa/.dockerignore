@@ -1,0 +1,8 @@
+node_modules/
+dist/
+android/
+.cache/
+*.md
+.git/
+.env
+.env.*

@@ -1,0 +1,764 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>X Vistoria — Sistema de Vistoria Condominial em Tempo Real</title>
+  <meta name="description" content="Sistema completo de vistoria condominial. Checklists inteligentes, relatórios PDF automáticos, fotos geolocalizadas e timeline em tempo real. Para administradoras, síndicos e empresas de segurança."/>
+  <meta name="keywords" content="vistoria condominial, inspeção predial, checklist condomínio, relatório vistoria, gestão condominial, vistoria predial, supervisão condominial"/>
+  <meta name="author" content="X Vistoria"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://xvistoria.com.br/"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://xvistoria.com.br/"/>
+  <meta property="og:title" content="X Vistoria — Vistoria Condominial em Tempo Real"/>
+  <meta property="og:description" content="Checklists inteligentes, relatórios PDF automáticos, fotos geolocalizadas e timeline em tempo real."/>
+  <meta property="og:image" content="https://xvistoria.com.br/og-image.png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:locale" content="pt_BR"/>
+  <meta property="og:site_name" content="X Vistoria"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="X Vistoria — Vistoria Condominial em Tempo Real"/>
+  <meta name="twitter:description" content="Checklists inteligentes, relatórios PDF automáticos, timeline em tempo real."/>
+  <meta name="twitter:image" content="https://xvistoria.com.br/og-image.png"/>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"SoftwareApplication",
+    "name":"X Vistoria",
+    "applicationCategory":"BusinessApplication",
+    "operatingSystem":"Web",
+    "description":"Sistema completo de vistoria condominial com checklists, relatórios PDF, fotos geolocalizadas e gestão de pendências.",
+    "url":"https://xvistoria.com.br",
+    "offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},
+    "publisher":{"@type":"Organization","name":"X Vistoria","url":"https://xvistoria.com.br"}
+  }
+  </script>
+  <meta name="theme-color" content="#0B1D35"/>
+  <link rel="icon" type="image/png" href="logo.png"/>
+  <link rel="apple-touch-icon" href="logo.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1D35;--navy-light:#132B4D;--navy-mid:#1A3A5C;
+  --accent:#00D68F;--accent-dark:#00B878;--accent-glow:rgba(0,214,143,.25);
+  --blue:#3B82F6;--purple:#8B5CF6;--orange:#F59E0B;--red:#EF4444;--pink:#EC4899;
+  --bg:#F0F4F8;--white:#FFF;
+  --g100:#F1F5F9;--g200:#E2E8F0;--g300:#CBD5E1;--g400:#94A3B8;--g500:#64748B;--g600:#475569;--g700:#334155;--g800:#1E293B;
+  --r:14px;--r-lg:22px;
+  --s-sm:0 2px 8px rgba(0,0,0,.06);--s-md:0 8px 30px rgba(0,0,0,.1);--s-lg:0 20px 60px rgba(0,0,0,.15);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--g700);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── NAV ────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 5%;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(11,29,53,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+.n-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.n-logo .ico-img{border-radius:8px}
+.n-logo .txt{font-size:1.15rem;font-weight:700;color:#fff}
+.n-logo .txt em{color:var(--accent);font-style:normal}
+.n-links{display:flex;gap:28px;list-style:none}
+.n-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s}
+.n-links a:hover{color:var(--accent)}
+.n-cta{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:.85rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
+.n-cta:hover{background:var(--accent-dark);transform:translateY(-1px)}
+.n-menu{display:none;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer}
+
+/* ── HERO ───────────────────────────────── */
+.hero{min-height:100vh;background:linear-gradient(160deg,#060E1A 0%,var(--navy) 40%,var(--navy-mid) 100%);display:flex;align-items:center;padding:100px 5% 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-100px;left:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(59,130,246,.1) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,214,143,.12);border:1px solid rgba(0,214,143,.25);border-radius:100px;padding:6px 16px;margin-bottom:20px;font-size:.78rem;font-weight:600;color:var(--accent)}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.hero h1{font-size:clamp(2rem,4vw,3.2rem);font-weight:900;color:#fff;line-height:1.12;margin-bottom:18px}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:32px;max-width:460px}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn-g{background:linear-gradient(135deg,var(--accent),#00B878);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-size:.95rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px var(--accent-glow)}
+.btn-g:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--accent-glow)}
+.btn-o{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:14px 28px;font-size:.95rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .25s}
+.btn-o:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4)}
+.hero-stats{display:flex;gap:36px;margin-top:44px;flex-wrap:wrap}
+.hs{text-align:center}
+.hs b{font-size:2.2rem;font-weight:900;display:block;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hs small{font-size:.78rem;color:rgba(255,255,255,.5)}
+
+/* HERO VISUAL — Dashboard Mockup */
+.hero-visual{position:relative;display:flex;justify-content:center;perspective:1000px}
+.dash-float{background:rgba(15,25,40,.95);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;width:100%;max-width:480px;box-shadow:var(--s-lg),0 0 80px rgba(0,214,143,.08);animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotateX(2deg)}50%{transform:translateY(-14px) rotateX(0deg)}}
+.df-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.df-head h4{color:#fff;font-size:.82rem;font-weight:700}
+.df-head .live{background:rgba(0,214,143,.15);color:var(--accent);border-radius:100px;padding:3px 10px;font-size:.68rem;font-weight:600;display:flex;align-items:center;gap:5px}
+.df-head .live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.df-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.dc{border-radius:10px;padding:12px;background:rgba(255,255,255,.04)}
+.dc b{font-size:1.5rem;font-weight:900;display:block}
+.dc small{font-size:.62rem;color:var(--g400)}
+.dc .sub{font-size:.62rem;margin-top:3px}
+.dc:nth-child(1) b{color:var(--accent)}.dc:nth-child(1) .sub{color:var(--accent)}
+.dc:nth-child(2) b{color:var(--orange)}.dc:nth-child(2) .sub{color:var(--orange)}
+.dc:nth-child(3) b{color:var(--blue)}.dc:nth-child(3) .sub{color:var(--blue)}
+
+/* Mini chart bars */
+.chart{display:flex;align-items:end;gap:3px;height:48px;margin-bottom:14px;padding:0 4px}
+.bar{flex:1;border-radius:4px 4px 0 0;animation:grow .8s ease forwards;transform-origin:bottom}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.bar:nth-child(1){height:60%;background:var(--accent);animation-delay:.1s}
+.bar:nth-child(2){height:45%;background:var(--blue);animation-delay:.15s}
+.bar:nth-child(3){height:80%;background:var(--accent);animation-delay:.2s}
+.bar:nth-child(4){height:55%;background:var(--blue);animation-delay:.25s}
+.bar:nth-child(5){height:90%;background:var(--accent);animation-delay:.3s}
+.bar:nth-child(6){height:40%;background:var(--purple);animation-delay:.35s}
+.bar:nth-child(7){height:70%;background:var(--accent);animation-delay:.4s}
+.bar:nth-child(8){height:95%;background:linear-gradient(180deg,var(--accent),var(--blue));animation-delay:.45s}
+
+/* Mini table */
+.mt{width:100%;border-collapse:collapse}
+.mt td{padding:7px 8px;font-size:.72rem;color:rgba(255,255,255,.7);border-bottom:1px solid rgba(255,255,255,.04)}
+.mt .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:.62rem;font-weight:600}
+.badge-g{background:rgba(0,214,143,.12);color:var(--accent)}
+.badge-o{background:rgba(245,158,11,.12);color:var(--orange)}
+.badge-r{background:rgba(239,68,68,.12);color:var(--red)}
+.mt .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+
+/* ── SECTION SHARED ─────────────────────── */
+section{padding:100px 5%}
+.sec-label{display:inline-block;background:linear-gradient(135deg,rgba(0,214,143,.1),rgba(59,130,246,.1));color:var(--navy-mid);border-radius:100px;padding:5px 16px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.sec-title{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;color:var(--navy);line-height:1.2;margin-bottom:14px}
+.sec-sub{font-size:1rem;color:var(--g500);line-height:1.7;max-width:560px}
+.sec-hd{margin-bottom:56px}.sec-hd.c{text-align:center}.sec-hd.c .sec-sub{margin:0 auto}
+
+/* ── FEATURES ───────────────────────────── */
+.feat{background:var(--white)}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto}
+.feat-card{background:var(--g100);border-radius:var(--r-lg);padding:32px 28px;border:1px solid var(--g200);transition:all .3s;position:relative;overflow:hidden}
+.feat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--blue));transform:scaleX(0);transition:transform .3s;transform-origin:left}
+.feat-card:hover{transform:translateY(-5px);box-shadow:var(--s-md);border-color:rgba(0,214,143,.2)}.feat-card:hover::after{transform:scaleX(1)}
+.feat-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:18px}
+.feat-card:nth-child(1) .feat-ico{background:rgba(0,214,143,.1)}
+.feat-card:nth-child(2) .feat-ico{background:rgba(59,130,246,.1)}
+.feat-card:nth-child(3) .feat-ico{background:rgba(139,92,246,.1)}
+.feat-card:nth-child(4) .feat-ico{background:rgba(245,158,11,.1)}
+.feat-card:nth-child(5) .feat-ico{background:rgba(236,72,153,.1)}
+.feat-card:nth-child(6) .feat-ico{background:rgba(239,68,68,.1)}
+.feat-card h3{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px}
+.feat-card p{font-size:.88rem;color:var(--g500);line-height:1.6}
+
+/* ── HOW IT WORKS ───────────────────────── */
+.how{background:var(--bg)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1100px;margin:0 auto;position:relative}
+.steps::before{content:'';position:absolute;top:36px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,var(--accent),var(--blue),var(--purple));z-index:0;border-radius:2px}
+.step{text-align:center;position:relative;z-index:1}
+.step-n{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;font-size:1.4rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;border:4px solid var(--bg);box-shadow:0 0 0 2px var(--navy);transition:all .3s}
+.step:hover .step-n{background:linear-gradient(135deg,var(--accent),var(--accent-dark));box-shadow:0 0 0 2px var(--accent),0 0 24px var(--accent-glow)}
+.step h3{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+.step p{font-size:.82rem;color:var(--g500);line-height:1.5}
+
+/* ── TOUR ───────────────────────────────── */
+.tour{background:var(--white)}
+.tour-block{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1100px;margin:0 auto 80px}
+.tour-block:last-child{margin-bottom:0}
+.tour-block.rev{direction:rtl}.tour-block.rev>*{direction:ltr}
+.tag{display:inline-block;background:linear-gradient(135deg,rgba(0,214,143,.1),rgba(59,130,246,.1));color:var(--accent-dark);border-radius:100px;padding:4px 14px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.tour-block h2{font-size:1.6rem;font-weight:800;color:var(--navy);margin-bottom:14px;line-height:1.2}
+.tour-block p{font-size:.92rem;color:var(--g500);line-height:1.7;margin-bottom:16px}
+.fl{list-style:none}
+.fl li{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--g600);padding:5px 0}
+.fl li::before{content:'✓';width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00B878);color:#fff;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Mockups */
+.mock{background:linear-gradient(135deg,#0a1628,#0f1f38);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:22px;box-shadow:var(--s-lg);font-size:.78rem}
+.mock-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.mock-h h5{color:#fff;font-weight:700;font-size:.82rem}
+.mock-h .st{padding:3px 10px;border-radius:100px;font-size:.68rem;font-weight:600}
+.st-g{background:rgba(0,214,143,.15);color:var(--accent)}
+.st-o{background:rgba(245,158,11,.15);color:var(--orange)}
+
+/* Checklist mock */
+.ck-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.ck-ico{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;flex-shrink:0}
+.ck-ok{background:rgba(0,214,143,.15);color:var(--accent)}
+.ck-no{background:rgba(239,68,68,.15);color:var(--red)}
+.ck-na{background:rgba(255,255,255,.06);color:var(--g400)}
+.ck-item .txt{color:rgba(255,255,255,.8);flex:1}
+.ck-item .cnt{font-size:.65rem;padding:2px 8px;border-radius:100px;background:rgba(255,255,255,.05);color:var(--g400)}
+
+/* Timeline mock items */
+.tl{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tl-t{color:var(--g400);font-size:.68rem;min-width:40px;padding-top:2px}
+.tl-d{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0}
+.tl-c{color:rgba(255,255,255,.75);font-size:.73rem;line-height:1.4}
+.tl-c strong{color:#fff}
+.tl-c .act{display:inline-block;margin-top:3px;background:rgba(0,214,143,.12);color:var(--accent);border-radius:5px;padding:2px 7px;font-size:.62rem;font-weight:600;cursor:pointer}
+
+/* PDF mock */
+.pdf-m{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--s-lg)}
+.pdf-h{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--navy)}
+.pdf-logo{width:34px;height:34px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.75rem}
+.pdf-h h5{font-size:.82rem;font-weight:800;color:var(--navy)}
+.pdf-h p{font-size:.68rem;color:var(--g500)}
+.pdf-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--g100);font-size:.73rem}
+.pdf-row .ico{font-size:.8rem;flex-shrink:0}
+.pdf-row .t{flex:1;color:var(--g600);line-height:1.4}
+.pdf-row .d{color:var(--g400);font-size:.68rem;margin-top:2px}
+.pdf-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:10px;background:var(--g100);border-radius:8px}
+.pdf-sum div{text-align:center}
+.pdf-sum b{font-size:1.2rem;font-weight:800;display:block}
+.pdf-sum small{font-size:.62rem;color:var(--g500)}
+
+/* ── AUDIENCE ───────────────────────────── */
+.aud{background:var(--bg)}
+.aud-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;max-width:1200px;margin:0 auto}
+.aud-card{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--s-sm);border:1px solid var(--g200);transition:all .3s;background:var(--white)}
+.aud-card:hover{transform:translateY(-5px);box-shadow:var(--s-md)}
+.aud-top{padding:24px;color:#fff}
+.aud-card:nth-child(1) .aud-top{background:linear-gradient(135deg,var(--navy),var(--navy-mid))}
+.aud-card:nth-child(2) .aud-top{background:linear-gradient(135deg,var(--accent-dark),#00D68F)}
+.aud-card:nth-child(3) .aud-top{background:linear-gradient(135deg,#2C3E50,#34495E)}
+.aud-card:nth-child(4) .aud-top{background:linear-gradient(135deg,var(--purple),#7C3AED)}
+.aud-top .ico{font-size:1.8rem;margin-bottom:10px;display:block}
+.aud-top h3{font-size:1rem;font-weight:800;margin-bottom:4px}
+.aud-top p{font-size:.82rem;opacity:.75;line-height:1.4}
+.aud-body{padding:20px 24px}
+.aud-body ul{list-style:none}
+.aud-body li{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--g600);padding:5px 0;border-bottom:1px solid var(--g100)}
+.aud-body li:last-child{border:none}
+.aud-body li::before{content:'→';color:var(--accent-dark);font-weight:700;font-size:.75rem}
+
+/* ── PRICING ────────────────────────────── */
+.pricing{background:var(--white);position:relative;overflow:hidden}
+.pricing::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(0,214,143,.04),transparent 70%);pointer-events:none}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1000px;margin:0 auto}
+.price-card{background:var(--g100);border-radius:var(--r-lg);padding:36px 30px;border:1px solid var(--g200);transition:all .3s;position:relative;text-align:center}
+.price-card:hover{transform:translateY(-6px);box-shadow:var(--s-md)}
+.price-card.pop{background:linear-gradient(135deg,#060E1A,var(--navy));border:2px solid var(--accent);color:#fff;transform:scale(1.04);box-shadow:0 20px 60px rgba(0,214,143,.15)}
+.price-card.pop:hover{transform:scale(1.04) translateY(-6px);box-shadow:0 24px 70px rgba(0,214,143,.2)}
+.pop-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),#00B878);color:#fff;border-radius:100px;padding:5px 20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.price-card h3{font-size:1.1rem;font-weight:800;margin-bottom:6px}
+.price-card:not(.pop) h3{color:var(--navy)}
+.price-card .desc{font-size:.85rem;margin-bottom:24px;opacity:.7}
+.price-val{margin-bottom:24px}
+.price-val .currency{font-size:1rem;font-weight:700;vertical-align:top;line-height:2.4}
+.price-val .amount{font-size:3.2rem;font-weight:900;line-height:1}
+.price-val .period{font-size:.82rem;opacity:.6}
+.price-card:not(.pop) .price-val .amount{color:var(--navy)}
+.price-card.pop .price-val .amount{background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.price-feat{list-style:none;text-align:left;margin-bottom:28px}
+.price-feat li{display:flex;align-items:center;gap:10px;font-size:.88rem;padding:7px 0;border-bottom:1px solid rgba(128,128,128,.1)}
+.price-feat li:last-child{border:none}
+.price-feat li::before{content:'✓';width:20px;height:20px;border-radius:50%;background:rgba(0,214,143,.15);color:var(--accent);font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.price-card.pop .price-feat li::before{background:rgba(0,214,143,.2)}
+.price-card:not(.pop) .price-feat li{color:var(--g600)}
+.price-btn{display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;padding:14px 24px;border-radius:10px;font-size:.95rem;font-weight:700;text-decoration:none;transition:all .25s;border:none;cursor:pointer}
+.price-card:not(.pop) .price-btn{background:var(--navy);color:#fff}
+.price-card:not(.pop) .price-btn:hover{background:var(--navy-mid);transform:translateY(-2px)}
+.price-card.pop .price-btn{background:linear-gradient(135deg,var(--accent),#00B878);color:#fff;box-shadow:0 4px 20px var(--accent-glow)}
+.price-card.pop .price-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--accent-glow)}
+.price-note{text-align:center;margin-top:32px;font-size:.85rem;color:var(--g400)}
+
+/* ── TRANSPARÊNCIA ──────────────────────── */
+.transparency{background:linear-gradient(180deg,var(--g100) 0%,var(--white) 100%);position:relative}
+.transp-card{max-width:780px;margin:0 auto;background:var(--white);border-radius:var(--r-lg);box-shadow:var(--s-md);padding:40px 44px;display:flex;gap:32px;align-items:flex-start;border:1px solid var(--g200);position:relative;overflow:hidden}
+.transp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--blue))}
+.transp-icon{font-size:3rem;flex-shrink:0;width:70px;height:70px;display:flex;align-items:center;justify-content:center;background:rgba(0,214,143,.1);border-radius:16px}
+.transp-content h3{font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:8px}
+.transp-content p{font-size:.9rem;color:var(--g500);line-height:1.7;margin-bottom:16px}
+.transp-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:24px}
+.transp-list li{font-size:.84rem;color:var(--g600);display:flex;align-items:center;gap:6px}
+.transp-list li::before{display:none}
+.transp-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;border-radius:10px;padding:13px 28px;font-size:.92rem;font-weight:700;text-decoration:none;transition:all .25s;box-shadow:var(--s-sm)}
+.transp-btn:hover{transform:translateY(-2px);box-shadow:var(--s-md)}
+@media(max-width:600px){
+  .transp-card{flex-direction:column;padding:28px 20px;gap:20px}
+  .transp-list{grid-template-columns:1fr}
+}
+
+/* ── CTA ────────────────────────────────── */
+.cta{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,#1a4a7a 100%);text-align:center;padding:100px 5%;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;top:-150px;right:-150px;width:500px;height:500px;background:radial-gradient(circle,var(--accent-glow),transparent 70%);pointer-events:none}
+.cta h2{font-size:clamp(2rem,4vw,3rem);font-weight:900;color:#fff;margin-bottom:14px}
+.cta h2 span{background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta p{font-size:1.05rem;color:rgba(255,255,255,.65);max-width:520px;margin:0 auto 36px;line-height:1.7}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-w{background:#fff;color:var(--navy);border:none;border-radius:10px;padding:15px 30px;font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.btn-w:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.btn-w2{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:10px;padding:15px 30px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .25s}
+.btn-w2:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+
+/* ── FOOTER ─────────────────────────────── */
+footer{background:#060E1A;color:rgba(255,255,255,.5);padding:48px 5% 28px}
+.ft-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
+.ft-brand .logo{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ft-brand .logo img{border-radius:6px}
+.ft-brand .logo span{color:#fff;font-weight:700;font-size:1rem}
+.ft-brand p{font-size:.82rem;line-height:1.6}
+.ft-col h4{color:#fff;font-size:.82rem;font-weight:700;margin-bottom:12px}
+.ft-col ul{list-style:none}.ft-col li{margin-bottom:7px}
+.ft-col a{color:rgba(255,255,255,.5);text-decoration:none;font-size:.82rem;transition:color .2s}
+.ft-col a:hover{color:var(--accent)}
+.ft-bot{max-width:1100px;margin:0 auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:.78rem}
+.ft-bot a{color:var(--accent);text-decoration:none}
+
+/* ── ANIMATIONS ─────────────────────────── */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}.rv.v{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr}.hero-visual{display:none}
+  .feat-grid{grid-template-columns:1fr 1fr}.aud-grid{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr 1fr}.steps::before{display:none}
+  .tour-block{grid-template-columns:1fr;gap:32px}.tour-block.rev{direction:ltr}
+  .ft-inner{grid-template-columns:1fr 1fr}
+  .n-links{display:none}.n-menu{display:block}
+  .price-grid{grid-template-columns:1fr}.price-card.pop{transform:scale(1)}.price-card.pop:hover{transform:translateY(-6px)}
+}
+@media(max-width:600px){
+  .feat-grid,.aud-grid,.steps{grid-template-columns:1fr}
+  .ft-inner{grid-template-columns:1fr}
+  .hero-stats{justify-content:center}
+  .hero-btns{flex-direction:column;align-items:stretch}
+}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="n-logo"><img src="logo.png" alt="X Vistoria" width="34" height="34" class="ico-img"/><span class="txt">X <em>Vistoria</em></span></a>
+  <ul class="n-links">
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#como-funciona">Como funciona</a></li>
+    <li><a href="#sistema">O sistema</a></li>
+    <li><a href="#para-quem">Para quem</a></li>
+    <li><a href="#precos">Planos</a></li>
+    <li><a href="#transparencia">Transparência</a></li>
+  </ul>
+  <a href="/register" class="n-cta">Criar conta grátis →</a>
+  <button class="n-menu" onclick="document.querySelector('.n-links').classList.toggle('show')" aria-label="Menu">☰</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge"><span class="dot"></span> Vistorias em tempo real</div>
+      <h1>Sua equipe em campo.<br><span>Você no controle.</span></h1>
+      <p>Vistorias condominiais com IA, relatórios PDF automáticos, fotos geolocalizadas e timeline em tempo real. Tudo em um só sistema.</p>
+      <div class="hero-btns">
+        <a href="/register" class="btn-g">Começar agora →</a>
+        <a href="/login" class="btn-o">Acessar a plataforma →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hs"><b>4</b><small>Perfis de acesso</small></div>
+        <div class="hs"><b>100%</b><small>Rastreável</small></div>
+        <div class="hs"><b>IA</b><small>Transcrição automática</small></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="dash-float">
+        <div class="df-head">
+          <div style="display:flex;align-items:center;gap:8px"><img src="logo.png" alt="" width="22" height="22" style="border-radius:5px"/><h4>Dashboard — Março/2026</h4></div>
+          <div class="live">Ao vivo</div>
+        </div>
+        <div class="df-cards">
+          <div class="dc"><b>47</b><small>Visitas</small><div class="sub">✓ 43 finalizadas</div></div>
+          <div class="dc"><b>12</b><small>Pendências</small><div class="sub">⚠ 4 abertas</div></div>
+          <div class="dc"><b>94%</b><small>Conformidade</small><div class="sub">↑ +2% mês ant.</div></div>
+        </div>
+        <div class="chart">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <table class="mt">
+          <tr><td><span class="dot" style="background:var(--accent)"></span> Splendor</td><td>19/03</td><td><span class="badge badge-g">✓ OK</span></td></tr>
+          <tr><td><span class="dot" style="background:var(--orange)"></span> Res. Park</td><td>12/03</td><td><span class="badge badge-o">⚠ 2 pend.</span></td></tr>
+          <tr><td><span class="dot" style="background:var(--red)"></span> Vila Flores</td><td>01/03</td><td><span class="badge badge-r">● atrasado</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNCIONALIDADES -->
+<section class="feat" id="funcionalidades">
+  <div class="sec-hd c rv">
+    <span class="sec-label">Funcionalidades</span>
+    <h2 class="sec-title">Tudo que você precisa em um só lugar</h2>
+    <p class="sec-sub">Do checklist inteligente ao relatório PDF, cada etapa da vistoria é coberta.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card rv">
+      <div class="feat-ico">📋</div>
+      <h3>Checklist Inteligente</h3>
+      <p>Categorias personalizáveis, perguntas obrigatórias/opcionais e modelos reutilizáveis por condomínio.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-ico">📡</div>
+      <h3>Timeline em Tempo Real</h3>
+      <p>Veja cada resposta do supervisor ao vivo. Alertas automáticos em itens negativos e chat direto.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-ico">🤖</div>
+      <h3>IA na Vistoria</h3>
+      <p>O supervisor fala, a IA transcreve, corrige e profissionaliza o texto automaticamente.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-ico">📄</div>
+      <h3>Relatório PDF Automático</h3>
+      <p>PDF com logo da empresa, fotos, pendências e assinatura digital. Gerado ao fim da visita.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-ico">🔗</div>
+      <h3>Portal do Síndico</h3>
+      <p>Acesso por link seguro. Histórico completo, download do PDF e confirmação de recebimento.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-ico">📊</div>
+      <h3>Dashboard Completo</h3>
+      <p>Indicadores, pendências, conformidade e desempenho por supervisor. Visão total da carteira.</p>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section class="how" id="como-funciona">
+  <div class="sec-hd c rv">
+    <span class="sec-label">Como funciona</span>
+    <h2 class="sec-title">Do campo ao síndico em 4 passos</h2>
+    <p class="sec-sub">Fluxo simples, rastreável e automático do início ao fim.</p>
+  </div>
+  <div class="steps">
+    <div class="step rv">
+      <div class="step-n">1</div>
+      <h3>Inicia a visita</h3>
+      <p>Seleciona o condomínio, abre o checklist. Cronômetro automático.</p>
+    </div>
+    <div class="step rv">
+      <div class="step-n">2</div>
+      <h3>Preenche com voz e foto</h3>
+      <p>Fala as observações, tira fotos. A IA transcreve tudo.</p>
+    </div>
+    <div class="step rv">
+      <div class="step-n">3</div>
+      <h3>Admin revisa</h3>
+      <p>A administradora acompanha ao vivo e aprova o relatório.</p>
+    </div>
+    <div class="step rv">
+      <div class="step-n">4</div>
+      <h3>Síndico recebe</h3>
+      <p>PDF profissional via portal seguro com foto e pendências.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TOUR DO SISTEMA -->
+<section class="tour" id="sistema">
+  <div class="sec-hd c rv">
+    <span class="sec-label">O sistema</span>
+    <h2 class="sec-title">Conheça cada funcionalidade</h2>
+  </div>
+
+  <!-- Checklist -->
+  <div class="tour-block rv">
+    <div>
+      <span class="tag">Checklist inteligente</span>
+      <h2>Monte seu formulário do jeito que precisar</h2>
+      <p>Categorias personalizáveis — Portaria, Segurança, Câmeras, Elevadores, Piscina e mais. Ative só o que faz parte do contrato.</p>
+      <ul class="fl">
+        <li>Perguntas obrigatórias e opcionais</li>
+        <li>Modelos reutilizáveis por condomínio</li>
+        <li>Itens negativos exigem foto automaticamente</li>
+        <li>Checklist avulso para inspeções rápidas</li>
+      </ul>
+    </div>
+    <div>
+      <div class="mock">
+        <div class="mock-h"><h5>Checklist — Cond. Splendor</h5><span class="st st-g">20 perguntas</span></div>
+        <div class="ck-item"><div class="ck-ico ck-ok">✓</div><span class="txt">Portaria e Acesso</span><span class="cnt">11 itens</span></div>
+        <div class="ck-item"><div class="ck-ico ck-ok">✓</div><span class="txt">Segurança e CFTV</span><span class="cnt">8 itens</span></div>
+        <div class="ck-item"><div class="ck-ico ck-ok">✓</div><span class="txt">Áreas Comuns e Limpeza</span><span class="cnt">7 itens</span></div>
+        <div class="ck-item"><div class="ck-ico ck-na">–</div><span class="txt" style="opacity:.4">Piscina</span><span class="cnt">não ativo</span></div>
+        <div style="margin-top:12px;padding:8px 12px;background:rgba(0,214,143,.08);border-radius:8px;border:1px solid rgba(0,214,143,.15)">
+          <span style="color:var(--accent);font-size:.7rem;font-weight:600">⏱ Estimativa: ≈ 35 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="tour-block rev rv">
+    <div>
+      <span class="tag">Timeline em tempo real</span>
+      <h2>Acompanhe cada visita ao vivo</h2>
+      <p>O supervisor preenche — você acompanha cada resposta em tempo real. Alertas automáticos em itens negativos e chat direto com o campo.</p>
+      <ul class="fl">
+        <li>Respostas aparecem ao vivo</li>
+        <li>Alertas em itens negativos</li>
+        <li>Chat direto com o supervisor</li>
+        <li>Notas internas (não vão ao síndico)</li>
+      </ul>
+    </div>
+    <div>
+      <div class="mock">
+        <div class="mock-h"><h5>Splendor — Péricles</h5><span class="st st-g">● Ao vivo · 38 min</span></div>
+        <div class="tl"><span class="tl-t">08:31</span><div class="tl-d ck-ok">✓</div><div class="tl-c"><strong>Portaria</strong> — porta fechada ✅</div></div>
+        <div class="tl"><span class="tl-t">08:35</span><div class="tl-d ck-ok">✓</div><div class="tl-c"><strong>Câmeras</strong> — CFTV operacional ✅</div></div>
+        <div class="tl"><span class="tl-t">08:40</span><div class="tl-d ck-no">✕</div><div class="tl-c" style="color:var(--red)">⚠ <strong>Sistema</strong> — dificuldade na saída<br><span class="act">💬 Falar com supervisor</span></div></div>
+        <div class="tl"><span class="tl-t">08:52</span><div class="tl-d ck-ok">✓</div><div class="tl-c">📷 <strong>Correspondências</strong> registradas</div></div>
+        <div style="display:flex;align-items:center;gap:6px;color:var(--g400);font-size:.68rem;padding:8px 0">
+          <span style="display:flex;gap:3px"><span style="width:4px;height:4px;border-radius:50%;background:var(--g400);animation:blink 1.2s infinite"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--g400);animation:blink 1.2s infinite .2s"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--g400);animation:blink 1.2s infinite .4s"></span></span>
+          aguardando...
+        </div>
+        @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF & Síndico -->
+  <div class="tour-block rv">
+    <div>
+      <span class="tag">Relatório PDF + Portal do Síndico</span>
+      <h2>Relatório profissional com aprovação</h2>
+      <p>PDF gerado automaticamente com logo, fotos e pendências. A administradora revisa e aprova antes de enviar ao síndico via portal seguro.</p>
+      <ul class="fl">
+        <li>Logo e cores da empresa no PDF</li>
+        <li>Fotos junto à pergunta</li>
+        <li>Assinatura digital do supervisor</li>
+        <li>Síndico acessa por link seguro</li>
+        <li>Confirmação de recebimento</li>
+      </ul>
+    </div>
+    <div>
+      <div class="pdf-m">
+        <div class="pdf-h">
+          <img src="logo.png" alt="X Vistoria" width="34" height="34" class="pdf-logo-img"/>
+          <div><h5>Relatório de Supervisão</h5><p>Splendor · 19/03/2026 · Péricles</p></div>
+        </div>
+        <div class="pdf-row"><span class="ico">✅</span><div class="t">Porta da guarita estava fechada?<div class="d">"porta fechada, funcionária uniformizada"</div></div></div>
+        <div class="pdf-row"><span class="ico">✅</span><div class="t">Câmeras CFTV operacionais?<div class="d">"câmeras e portões operacionais"</div></div></div>
+        <div class="pdf-row" style="background:rgba(239,68,68,.04);border-radius:6px;padding:6px;margin:2px -6px"><span class="ico">❌</span><div class="t" style="color:var(--red)">Sistema de portaria?<div class="d" style="color:var(--g400)">"dificuldade para registrar saída"</div></div></div>
+        <div class="pdf-sum">
+          <div><b style="color:var(--accent)">26</b><small>Conformes</small></div>
+          <div><b style="color:var(--red)">2</b><small>Pendências</small></div>
+          <div><b style="color:var(--g400)">2</b><small>N/A</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUEM -->
+<section class="aud" id="para-quem">
+  <div class="sec-hd c rv">
+    <span class="sec-label">Para quem é</span>
+    <h2 class="sec-title">Uma solução para cada perfil</h2>
+  </div>
+  <div class="aud-grid">
+    <div class="aud-card rv">
+      <div class="aud-top"><span class="ico">🏢</span><h3>Administradoras</h3><p>Carteira completa com visibilidade total.</p></div>
+      <div class="aud-body"><ul>
+        <li>Visitas ao vivo</li>
+        <li>Relatórios automáticos</li>
+        <li>Desempenho por supervisor</li>
+        <li>Dashboard com indicadores</li>
+      </ul></div>
+    </div>
+    <div class="aud-card rv">
+      <div class="aud-top"><span class="ico">🛡️</span><h3>Segurança e Terceirização</h3><p>Comprove a qualidade com rastreabilidade.</p></div>
+      <div class="aud-body"><ul>
+        <li>Foto, hora e assinatura</li>
+        <li>Documentação completa</li>
+        <li>Diferencial competitivo</li>
+        <li>Histórico para defesa</li>
+      </ul></div>
+    </div>
+    <div class="aud-card rv">
+      <div class="aud-top"><span class="ico">🎖️</span><h3>Síndicos Profissionais</h3><p>Escale com vários condomínios.</p></div>
+      <div class="aud-body"><ul>
+        <li>Gestão multi-condomínio</li>
+        <li>Relatórios profissionais</li>
+        <li>Prestação de contas</li>
+        <li>Credibilidade</li>
+      </ul></div>
+    </div>
+    <div class="aud-card rv">
+      <div class="aud-top"><span class="ico">🏠</span><h3>Autogestão</h3><p>Profissionalize sem administradora.</p></div>
+      <div class="aud-body"><ul>
+        <li>Simples como um formulário</li>
+        <li>Sem papel, sem planilha</li>
+        <li>Histórico organizado</li>
+        <li>Relatórios para assembleia</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- PREÇOS -->
+<section class="pricing" id="precos">
+  <div class="sec-hd c rv">
+    <span class="sec-label">Planos</span>
+    <h2 class="sec-title">Escolha o plano ideal para sua operação</h2>
+    <p class="sec-sub">Todos os planos incluem todas as funcionalidades. A diferença é a quantidade de condomínios.</p>
+  </div>
+  <div class="price-grid">
+    <!-- Plano 1 -->
+    <div class="price-card rv">
+      <h3>Essencial</h3>
+      <p class="desc">Para operações menores</p>
+      <div class="price-val">
+        <span class="currency">R$</span><span class="amount">199</span>
+        <div class="period">/mês</div>
+      </div>
+      <ul class="price-feat">
+        <li>Até <strong>10 condomínios</strong></li>
+        <li>Checklists ilimitados</li>
+        <li>Timeline em tempo real</li>
+        <li>Relatórios PDF automáticos</li>
+        <li>Portal do Síndico</li>
+        <li>IA para transcrição</li>
+        <li>App mobile</li>
+        <li>Funcionários ilimitados</li>
+      </ul>
+      <a href="https://wa.me/5511933284364?text=Olá!%20Tenho%20interesse%20no%20plano%20Essencial%20(R$199)%20do%20App%20Vistoria." class="price-btn" target="_blank" rel="noopener">📱 Contratar via WhatsApp</a>
+    </div>
+    <!-- Plano 2 -->
+    <div class="price-card pop rv">
+      <h3>Profissional</h3>
+      <p class="desc">Para administradoras em crescimento</p>
+      <div class="price-val">
+        <span class="currency">R$</span><span class="amount">299</span>
+        <div class="period">/mês</div>
+      </div>
+      <ul class="price-feat">
+        <li>Até <strong>20 condomínios</strong></li>
+        <li>Checklists ilimitados</li>
+        <li>Timeline em tempo real</li>
+        <li>Relatórios PDF automáticos</li>
+        <li>Portal do Síndico</li>
+        <li>IA para transcrição</li>
+        <li>App mobile</li>
+        <li>Funcionários ilimitados</li>
+        <li>Dashboard avançado</li>
+      </ul>
+      <a href="https://wa.me/5511933284364?text=Olá!%20Tenho%20interesse%20no%20plano%20Profissional%20(R$299)%20do%20App%20Vistoria." class="price-btn" target="_blank" rel="noopener">📱 Contratar via WhatsApp</a>
+    </div>
+    <!-- Plano 3 -->
+    <div class="price-card rv">
+      <h3>Enterprise</h3>
+      <p class="desc">Para grandes operações</p>
+      <div class="price-val">
+        <span class="currency">R$</span><span class="amount">399</span>
+        <div class="period">/mês</div>
+      </div>
+      <ul class="price-feat">
+        <li>Condomínios <strong>ilimitados</strong></li>
+        <li>Checklists ilimitados</li>
+        <li>Timeline em tempo real</li>
+        <li>Relatórios PDF automáticos</li>
+        <li>Portal do Síndico</li>
+        <li>IA para transcrição</li>
+        <li>App mobile</li>
+        <li>Funcionários ilimitados</li>
+        <li>Dashboard avançado</li>
+        <li>Suporte prioritário</li>
+      </ul>
+      <a href="https://wa.me/5511933284364?text=Olá!%20Tenho%20interesse%20no%20plano%20Enterprise%20(R$399)%20do%20App%20Vistoria." class="price-btn" target="_blank" rel="noopener">📱 Contratar via WhatsApp</a>
+    </div>
+  </div>
+  <p class="price-note">Todos os planos incluem suporte, atualizações e sem fidelidade.</p>
+</section>
+
+<!-- TRANSPARÊNCIA -->
+<section class="transparency" id="transparencia">
+  <div class="sec-hd c rv">
+    <span class="sec-label">Transparência Total</span>
+    <h2 class="sec-title">Conheça nosso contrato</h2>
+    <p class="sec-sub">Acreditamos que a confiança começa pela transparência. Nosso contrato está disponível para leitura antes mesmo de você se tornar cliente.</p>
+  </div>
+  <div class="transp-card rv">
+    <div class="transp-icon">📄</div>
+    <div class="transp-content">
+      <h3>Contrato de Prestação de Serviços (SaaS)</h3>
+      <p>Contrato completo com todas as cláusulas, obrigações, direitos e valores. Campos editáveis para preenchimento digital. Selecione seu plano, preencha seus dados e imprima.</p>
+      <ul class="transp-list">
+        <li>✓ 9 cláusulas claras e objetivas</li>
+        <li>✓ Planos e valores detalhados</li>
+        <li>✓ Campos editáveis digitalmente</li>
+        <li>✓ Pronto para impressão</li>
+        <li>✓ Conforme LGPD</li>
+      </ul>
+      <a href="contrato.html" class="transp-btn">📄 Ler o contrato completo →</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Pronto para transformar<br>sua <span>gestão condominial</span>?</h2>
+  <p>Crie sua conta gratuita e configure seu primeiro condomínio em minutos.</p>
+  <div class="cta-btns">
+    <a href="/register" class="btn-w">🚀 Criar conta grátis</a>
+    <a href="/login" class="btn-w2">Já tenho conta →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-inner">
+    <div class="ft-brand">
+      <div class="logo"><img src="logo.png" alt="X Vistoria" width="30" height="30"/><span>X Vistoria</span></div>
+      <p>Vistorias condominiais em tempo real. Relatórios automáticos. Gestão completa.</p>
+    </div>
+    <div class="ft-col">
+      <h4>Produto</h4>
+      <ul>
+        <li><a href="#funcionalidades">Funcionalidades</a></li>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#sistema">O sistema</a></li>
+      </ul>
+    </div>
+    <div class="ft-col">
+      <h4>Para quem</h4>
+      <ul>
+        <li><a href="#para-quem">Administradoras</a></li>
+        <li><a href="#para-quem">Segurança</a></li>
+        <li><a href="#para-quem">Síndicos</a></li>
+        <li><a href="#para-quem">Autogestão</a></li>
+      </ul>
+    </div>
+    <div class="ft-col">
+      <h4>Transparência</h4>
+      <ul>
+        <li><a href="contrato.html">Contrato</a></li>
+        <li><a href="#precos">Planos e Preços</a></li>
+      </ul>
+    </div>
+    <div class="ft-col">
+      <h4>Acesso</h4>
+      <ul>
+        <li><a href="/login">Painel Admin</a></li>
+        <li><a href="https://app.xvistoria.com.br">App Mobile</a></li>
+        <li><a href="/register">Criar conta</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ft-bot">
+    <p>&copy; 2026 X Vistoria &middot; <a href="https://xvistoria.com.br">xvistoria.com.br</a></p>
+    <p>Sua equipe em campo. Você no controle.</p>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.rv').forEach(el=>{
+  new IntersectionObserver(([e])=>{if(e.isIntersecting)e.target.classList.add('v')},{threshold:.1}).observe(el)
+});
+</script>
+</body>
+</html>

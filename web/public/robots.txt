@@ -1,0 +1,28 @@
+# X Vistoria
+# https://xvistoria.com.br
+
+User-agent: *
+Allow: /questionario/
+Allow: /checklist-report/
+Allow: /sindico/
+Allow: /login
+Allow: /register
+Allow: /contrato
+
+# Disallow admin/protected areas
+Disallow: /dashboard
+Disallow: /visitas
+Disallow: /condominios
+Disallow: /usuarios
+Disallow: /vistoria
+Disallow: /empresas
+Disallow: /categorias
+Disallow: /pendencias
+Disallow: /relatorios
+Disallow: /configuracoes
+Disallow: /localizacao
+Disallow: /vistoria-livre
+Disallow: /checklist-avulso
+
+# Sitemap
+Sitemap: https://xvistoria.com.br/sitemap.xml

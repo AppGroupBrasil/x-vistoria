@@ -1,0 +1,7 @@
+# X Vistoria — PWA (Mobile App)
+# https://app.xvistoria.com.br
+
+User-agent: *
+Disallow: /
+
+# PWA is auth-protected, no crawling needed

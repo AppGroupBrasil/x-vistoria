@@ -1,0 +1,31 @@
+# Dependências
+node_modules/
+dist/
+build/
+
+# Variáveis de ambiente (NUNCA commitar credenciais)
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Capacitor (gerado automaticamente)
+pwa/android/
+pwa/ios/
+
+# Build outputs
+api/dist/
+web/dist/
+pwa/dist/

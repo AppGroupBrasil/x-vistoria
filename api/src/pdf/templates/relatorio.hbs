@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a2e; font-size: 11px; }
+
+  .header { background: #1E3A5F; color: white; padding: 24px; display: flex; justify-content: space-between; align-items: center; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .header-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .header-logo .placeholder { font-size: 22px; font-weight: 800; color: rgba(255,255,255,0.6); }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+  .header .empresa { text-align: right; font-size: 10px; opacity: 0.85; }
+
+  .titulo-bar { background: #f0f4f8; padding: 14px 24px; border-bottom: 2px solid #1E3A5F; }
+  .titulo-bar h2 { font-size: 14px; font-weight: 700; color: #1E3A5F; margin-bottom: 4px; }
+  .titulo-bar .meta { display: flex; gap: 24px; font-size: 10px; color: #6b7280; }
+  .titulo-bar .meta strong { color: #1E3A5F; }
+
+  .info-block { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 24px; background: #f8f9fb; border-bottom: 2px solid #e5e7eb; }
+  .info-card { background: white; border-radius: 8px; padding: 12px; border: 1px solid #e5e7eb; }
+  .info-card h3 { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 6px; }
+  .info-card p { font-size: 12px; font-weight: 600; color: #1E3A5F; }
+  .info-card span { font-size: 10px; color: #6b7280; }
+
+  .resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px 24px; background: white; border-bottom: 2px solid #e5e7eb; }
+  .resumo-card { text-align: center; padding: 10px; border-radius: 8px; }
+  .resumo-card.ok { background: #d1fae5; }
+  .resumo-card.nao-ok { background: #fee2e2; }
+  .resumo-card.na { background: #f3f4f6; }
+  .resumo-card.perc { background: #dbeafe; }
+  .resumo-card .num { font-size: 24px; font-weight: 700; }
+  .resumo-card.ok .num { color: #059669; }
+  .resumo-card.nao-ok .num { color: #dc2626; }
+  .resumo-card.na .num { color: #6b7280; }
+  .resumo-card.perc .num { color: #2563eb; }
+  .resumo-card .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; color: #6b7280; }
+
+  .section { padding: 12px 24px; page-break-inside: avoid; }
+  .section-title { font-size: 13px; font-weight: 700; color: #1E3A5F; border-bottom: 2px solid #1E3A5F; padding-bottom: 4px; margin-bottom: 10px; }
+
+  .categoria { margin-bottom: 14px; page-break-inside: avoid; }
+  .categoria-nome { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; background: #f3f4f6; padding: 5px 10px; border-radius: 4px; margin-bottom: 6px; }
+
+  .item { display: flex; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f3f4f6; gap: 10px; }
+  .item:last-child { border-bottom: none; }
+  .item-badge { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; }
+  .item-badge.ok { background: #10b981; }
+  .item-badge.nao_ok { background: #ef4444; }
+  .item-badge.na { background: #9ca3af; }
+  .item-badge.observacao { background: #f59e0b; }
+  .item-badge.pendente { background: #e5e7eb; color: #9ca3af; }
+  .item-content { flex: 1; }
+  .item-pergunta { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+  .item-obs { font-size: 10px; color: #4b5563; font-style: italic; margin-top: 2px; }
+
+  .pendencias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pendencia-card { border-radius: 8px; padding: 10px; border-left: 4px solid; }
+  .pendencia-card.urgente { border-color: #dc2626; background: #fff5f5; }
+  .pendencia-card.alta { border-color: #f97316; background: #fff7ed; }
+  .pendencia-card.media { border-color: #f59e0b; background: #fffbeb; }
+  .pendencia-card.baixa { border-color: #6b7280; background: #f9fafb; }
+  .pendencia-titulo { font-weight: 700; font-size: 11px; margin-bottom: 3px; }
+  .pendencia-desc { font-size: 10px; color: #6b7280; }
+  .pendencia-meta { font-size: 9px; margin-top: 5px; color: #9ca3af; }
+  .prioridade-badge { display: inline-block; padding: 1px 6px; border-radius: 99px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+  .prioridade-badge.urgente { background: #fee2e2; color: #dc2626; }
+  .prioridade-badge.alta { background: #ffedd5; color: #ea580c; }
+  .prioridade-badge.media { background: #fef3c7; color: #d97706; }
+  .prioridade-badge.baixa { background: #f3f4f6; color: #6b7280; }
+
+  .fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .foto-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
+  .foto-legenda { font-size: 9px; color: #6b7280; text-align: center; margin-top: 3px; }
+
+  .item-fotos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .item-fotos img { width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e5e7eb; }
+
+  .item-com-foto { page-break-inside: avoid; }
+
+  .assinatura-section { padding: 30px 24px 20px; page-break-inside: avoid; }
+  .assinatura-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
+  .assinatura-campo { text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 12px; background: #f8f9fb; }
+  .assinatura-digital-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px; }
+  .assinatura-nome { font-size: 12px; font-weight: 700; color: #1E3A5F; }
+  .assinatura-cargo { font-size: 10px; color: #6b7280; margin-top: 2px; }
+  .assinatura-doc { font-size: 9px; color: #9ca3af; margin-top: 2px; }
+  .assinatura-img { max-width: 180px; max-height: 60px; margin: 8px auto 4px; }
+  .assinatura-selo { display: inline-block; margin-top: 8px; padding: 2px 10px; background: #1E3A5F; color: white; border-radius: 4px; font-size: 8px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .footer { background: #1E3A5F; color: white; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 9px; opacity: 0.9; position: fixed; bottom: 0; left: 0; right: 0; }
+
+  .status-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+  .status-badge.aprovada, .status-badge.concluida { background: #d1fae5; color: #059669; }
+  .status-badge.aguardando_aprovacao { background: #fef3c7; color: #d97706; }
+  .status-badge.enviada_sindico { background: #dbeafe; color: #2563eb; }
+
+  @media print { .footer { position: fixed; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      {{#if visita.empresa_logo}}<img src="{{visita.empresa_logo}}" alt="Logo" />{{else}}<span class="placeholder">Logo</span>{{/if}}
+    </div>
+    <div>
+      <h1>X <span style="color: #00D68F;">Vistoria</span></h1>
+      <div style="color: #ffffff; font-size: 11px; font-weight: 600; letter-spacing: 2px; margin-top: -2px;">CONDOMINIAL</div>
+      <div class="subtitle">RELATÓRIO DE VISTORIA CONDOMINIAL</div>
+    </div>
+  </div>
+  <div class="empresa">
+    {{visita.empresa_nome}}<br>
+    Protocolo: <strong>#{{visita.protocolo}}</strong><br>
+    Gerado em {{data_geracao}}
+  </div>
+</div>
+
+<div class="titulo-bar">
+  <h2>{{visita.condominio_nome}}</h2>
+  <div class="meta">
+    <span>📅 Data: <strong>{{data_visita}}</strong></span>
+    <span>📍 <strong>{{visita.endereco}}{{#if visita.cidade}}, {{visita.cidade}}/{{visita.estado}}{{/if}}</strong></span>
+    {{#if visita.titulo}}<span>📋 {{visita.titulo}}</span>{{/if}}
+  </div>
+</div>
+
+<div class="info-block">
+  <div class="info-card">
+    <h3>Condomínio</h3>
+    <p>{{visita.condominio_nome}}</p>
+    <span>{{visita.endereco}}{{#if visita.cidade}}, {{visita.cidade}}/{{visita.estado}}{{/if}}</span>
+    {{#if visita.sindico_nome}}<br><span>Síndico: {{visita.sindico_nome}}</span>{{/if}}
+  </div>
+  <div class="info-card">
+    <h3>Supervisor</h3>
+    <p>{{visita.supervisor_nome}}</p>
+    <span>{{visita.supervisor_email}}</span>
+    {{#if visita.supervisor_telefone}}<br><span>{{visita.supervisor_telefone}}</span>{{/if}}
+  </div>
+  <div class="info-card">
+    <h3>Data da Vistoria</h3>
+    <p>{{data_visita}}</p>
+    {{#if visita.titulo}}<span>{{visita.titulo}}</span>{{/if}}
+  </div>
+  <div class="info-card">
+    <h3>Status</h3>
+    <p><span class="status-badge {{visita.status}}">{{visita.status}}</span></p>
+    {{#if visita.aprovada_em}}<span>Aprovado em {{visita.aprovada_em}}</span>{{/if}}
+  </div>
+</div>
+
+<div class="resumo">
+  <div class="resumo-card ok">
+    <div class="num">{{totalOk}}</div>
+    <div class="label">Conforme</div>
+  </div>
+  <div class="resumo-card nao-ok">
+    <div class="num">{{totalNaoOk}}</div>
+    <div class="label">Não Conforme</div>
+  </div>
+  <div class="resumo-card na">
+    <div class="num">{{totalNA}}</div>
+    <div class="label">Não Aplicável</div>
+  </div>
+  <div class="resumo-card perc">
+    <div class="num">{{percentual}}%</div>
+    <div class="label">Conformidade</div>
+  </div>
+</div>
+
+{{#if visita.observacoes_gerais}}
+<div class="section">
+  <div class="section-title">Observações Gerais</div>
+  <p style="color: #374151; line-height: 1.6;">{{visita.observacoes_gerais}}</p>
+</div>
+{{/if}}
+
+<div class="section">
+  <div class="section-title">Checklist Detalhado</div>
+  {{#each categorias}}
+  <div class="categoria">
+    <div class="categoria-nome">{{this.nome}}</div>
+    {{#each this.itens}}
+    <div class="item{{#if this.fotos.length}} item-com-foto{{/if}}">
+      <div class="item-badge {{#if this.resultado}}{{this.resultado}}{{else}}pendente{{/if}}">
+        {{#if (eq this.resultado 'ok')}}✓{{/if}}
+        {{#if (eq this.resultado 'nao_ok')}}✗{{/if}}
+        {{#if (eq this.resultado 'na')}}—{{/if}}
+        {{#if (eq this.resultado 'observacao')}}!{{/if}}
+        {{#unless this.resultado}}○{{/unless}}
+      </div>
+      <div class="item-content">
+        <div class="item-pergunta">{{this.pergunta_texto}}</div>
+        {{#if this.transcricao_corrigida}}<div class="item-obs">{{this.transcricao_corrigida}}</div>{{/if}}
+        {{#if this.observacao}}<div class="item-obs">{{this.observacao}}</div>{{/if}}
+        {{#if this.fotos.length}}
+        <div class="item-fotos">
+          {{#each this.fotos}}
+          <img src="{{this.url}}" alt="Foto" />
+          {{/each}}
+        </div>
+        {{/if}}
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</div>
+
+{{#if pendencias.length}}
+<div class="section">
+  <div class="section-title">Pendências ({{pendencias.length}})</div>
+  <div class="pendencias-grid">
+    {{#each pendencias}}
+    <div class="pendencia-card {{this.prioridade}}">
+      <div style="margin-bottom: 4px;"><span class="prioridade-badge {{this.prioridade}}">{{this.prioridade}}</span></div>
+      <div class="pendencia-titulo">{{this.titulo}}</div>
+      {{#if this.descricao}}<div class="pendencia-desc">{{this.descricao}}</div>{{/if}}
+      <div class="pendencia-meta">
+        {{#if this.responsavel}}Responsável: {{this.responsavel}} · {{/if}}
+        {{#if this.prazo}}Prazo: {{this.prazo}}{{/if}}
+      </div>
+    </div>
+    {{/each}}
+  </div>
+</div>
+{{/if}}
+
+{{#if fotos.length}}
+<div class="section">
+  <div class="section-title">Registros Fotográficos ({{fotos.length}})</div>
+  <div class="fotos-grid">
+    {{#each fotos}}
+    <div class="foto-item">
+      <img src="{{this.url}}" alt="Foto {{@index}}" />
+      {{#if this.legenda}}<div class="foto-legenda">{{this.legenda}}</div>{{/if}}
+    </div>
+    {{/each}}
+  </div>
+</div>
+{{/if}}
+
+<div class="assinatura-section">
+  <div class="section-title">Assinaturas Digitais</div>
+  <div class="assinatura-grid">
+    <div class="assinatura-campo">
+      <div class="assinatura-digital-label">Assinatura Digital — Vistoriador</div>
+      <div class="assinatura-nome">{{visita.supervisor_nome}}</div>
+      {{#if visita.supervisor_cargo}}<div class="assinatura-cargo">{{visita.supervisor_cargo}}</div>{{/if}}
+      {{#if visita.supervisor_documento}}<div class="assinatura-doc">CNPJ/CPF: {{visita.supervisor_documento}}</div>{{/if}}
+      <div class="assinatura-selo">✓ ASSINADO DIGITALMENTE</div>
+    </div>
+    <div class="assinatura-campo">
+      <div class="assinatura-digital-label">Assinatura Digital — Administrador</div>
+      {{#if assinatura_admin.nome}}
+      {{#if assinatura_admin.img}}<img class="assinatura-img" src="{{assinatura_admin.img}}" alt="Assinatura" />{{/if}}
+      <div class="assinatura-nome">{{assinatura_admin.nome}}</div>
+      {{#if assinatura_admin.cargo}}<div class="assinatura-cargo">{{assinatura_admin.cargo}}</div>{{/if}}
+      {{#if assinatura_admin.documento}}<div class="assinatura-doc">CNPJ/CPF: {{assinatura_admin.documento}}</div>{{/if}}
+      <div class="assinatura-selo">✓ ASSINADO DIGITALMENTE</div>
+      {{else}}
+      <div class="assinatura-nome" style="color: #9ca3af;">Não configurado</div>
+      <div class="assinatura-cargo">Configure em Configurações</div>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>X Vistoria Condominial · xvistoria.com.br</span>
+  <span>{{visita.empresa_nome}} · Relatório gerado automaticamente</span>
+  <span>Visita ID: {{visita.id}}</span>
+</div>
+
+</body>
+</html>
