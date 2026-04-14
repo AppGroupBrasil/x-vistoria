@@ -3,7 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { SQL } from '../database/database.module';
 import { AuditService } from '../audit/audit.service';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +14,21 @@ export class AuthService {
     @Inject(SQL) private readonly sql: any,
     private readonly jwtService: JwtService,
     private readonly auditService: AuditService,
+    private readonly mailService: MailService,
   ) {}
+
+  private maskEmail(email: string) {
+    const [localPart, domain] = email.split('@');
+    if (!localPart || !domain) {
+      return 'email-invalido';
+    }
+
+    const maskedLocal = localPart.length <= 2
+      ? `${localPart[0] || '*'}*`
+      : `${localPart.slice(0, 2)}***`;
+
+    return `${maskedLocal}@${domain}`;
+  }
 
   async login(email: string, senha: string) {
     const [usuario] = await this.sql`
@@ -24,13 +39,13 @@ export class AuthService {
     `;
 
     if (!usuario) {
-      this.logger.warn(`Login falhou: email não encontrado (${email})`);
+      this.logger.warn(`Login falhou para ${this.maskEmail(email)}`);
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
     const senhaOk = await bcrypt.compare(senha, usuario.senha_hash);
     if (!senhaOk) {
-      this.logger.warn(`Login falhou: senha incorreta (${email})`);
+      this.logger.warn(`Login falhou para ${this.maskEmail(email)}`);
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
@@ -235,7 +250,8 @@ export class AuthService {
     }
 
     // Criar funcionário (supervisor) de exemplo
-    const senhaFuncionario = await bcrypt.hash('123456', 12);
+    const senhaSupervisorTemporaria = randomBytes(32).toString('hex');
+    const senhaFuncionario = await bcrypt.hash(senhaSupervisorTemporaria, 12);
     const [funcionario] = await this.sql`
       INSERT INTO usuarios (empresa_id, nome, email, senha_hash, role, telefone, pode_editar, pode_excluir, cargo)
       VALUES (
@@ -287,13 +303,14 @@ export class AuthService {
   }
 
   async esqueciSenha(email: string) {
+    this.mailService.assertConfigured();
+
     const [usuario] = await this.sql`
-      SELECT id FROM usuarios WHERE email = ${email} AND ativo = true
+      SELECT id, nome, email FROM usuarios WHERE email = ${email} AND ativo = true
     `;
 
     // Always return success to prevent email enumeration
     if (!usuario) {
-      this.logger.warn(`Esqueci senha: email não encontrado (${email})`);
       return { message: 'Se o email existir, você receberá um link de redefinição.' };
     }
 
@@ -306,8 +323,7 @@ export class AuthService {
       WHERE id = ${usuario.id}
     `;
 
-    // NOTE: Email service (SES) integration pending
-    this.logger.log(`Reset token gerado para ${email}`);
+    await this.mailService.sendPasswordResetEmail(usuario.email, usuario.nome, token);
 
     return { message: 'Se o email existir, você receberá um link de redefinição.' };
   }

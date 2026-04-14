@@ -784,13 +784,16 @@ export default function VisitasPage() {
                           value={novoSupervisor.senha}
                           onChange={(e) => setNovoSupervisor({ ...novoSupervisor, senha: e.target.value })}
                           className="input"
-                          placeholder="Mínimo 6 caracteres"
+                          placeholder="6 dígitos numéricos"
+                          inputMode="numeric"
+                          maxLength={6}
+                          pattern="[0-9]{6}"
                         />
                       </div>
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          disabled={criarUsuario.isPending || !novoSupervisor.nome.trim() || !novoSupervisor.email.trim() || novoSupervisor.senha.length < 6}
+                          disabled={criarUsuario.isPending || !novoSupervisor.nome.trim() || !novoSupervisor.email.trim() || !/^\d{6}$/.test(novoSupervisor.senha)}
                           onClick={async () => {
                             try {
                               const sup: any = await criarUsuario.mutateAsync({

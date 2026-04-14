@@ -1,38 +1,41 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './store/auth'
 import ErrorBoundary from './components/ErrorBoundary'
 import NotFoundPage from './components/NotFoundPage'
 import { ConfirmProvider } from './components/ConfirmDialog'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import EsqueciSenhaPage from './pages/EsqueciSenhaPage'
-import RedefinirSenhaPage from './pages/RedefinirSenhaPage'
-import AdminLayout from './layouts/AdminLayout'
-import DashboardPage from './pages/admin/DashboardPage'
-import VisitasPage from './pages/admin/VisitasPage'
-import VisitaDetailPage from './pages/admin/VisitaDetailPage'
-import CondominiosPage from './pages/admin/CondominiosPage'
-import UsuariosPage from './pages/admin/UsuariosPage'
-import TimelinePage from './pages/admin/TimelinePage'
-import TemplatesPage from './pages/admin/TemplatesPage'
-import VisitaEditPage from './pages/admin/VisitaEditPage'
-import EmpresasPage from './pages/admin/EmpresasPage'
-import CategoriasPage from './pages/admin/CategoriasPage'
-import RelatoriosPage from './pages/admin/RelatoriosPage'
-import PendenciasPage from './pages/admin/PendenciasPage'
-import ConfiguracoesPage from './pages/admin/ConfiguracoesPage'
-import LocalizacaoPage from './pages/admin/LocalizacaoPage'
-import VistoriaLivrePage from './pages/admin/VistoriaLivrePage'
-import VistoriaLivreExecPage from './pages/admin/VistoriaLivreExecPage'
-import ChecklistDashPage from './pages/admin/ChecklistDashPage'
-import ChecklistExecPage from './pages/admin/ChecklistExecPage'
-import ChecklistReportPage from './pages/ChecklistReportPage'
-import SindicoPage from './pages/sindico/SindicoPage'
-import QuestionarioPage from './pages/QuestionarioPage'
-import PortalCondominioPage from './pages/PortalCondominioPage'
-import PortalEspacoPage from './pages/PortalEspacoPage'
-import PontoQrPage from './pages/PontoQrPage'
-import AtividadesPage from './pages/admin/AtividadesPage'
+
+// Lazy-loaded pages (code-splitting)
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const EsqueciSenhaPage = lazy(() => import('./pages/EsqueciSenhaPage'))
+const RedefinirSenhaPage = lazy(() => import('./pages/RedefinirSenhaPage'))
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
+const VisitasPage = lazy(() => import('./pages/admin/VisitasPage'))
+const VisitaDetailPage = lazy(() => import('./pages/admin/VisitaDetailPage'))
+const CondominiosPage = lazy(() => import('./pages/admin/CondominiosPage'))
+const UsuariosPage = lazy(() => import('./pages/admin/UsuariosPage'))
+const TimelinePage = lazy(() => import('./pages/admin/TimelinePage'))
+const TemplatesPage = lazy(() => import('./pages/admin/TemplatesPage'))
+const VisitaEditPage = lazy(() => import('./pages/admin/VisitaEditPage'))
+const EmpresasPage = lazy(() => import('./pages/admin/EmpresasPage'))
+const CategoriasPage = lazy(() => import('./pages/admin/CategoriasPage'))
+const RelatoriosPage = lazy(() => import('./pages/admin/RelatoriosPage'))
+const PendenciasPage = lazy(() => import('./pages/admin/PendenciasPage'))
+const ConfiguracoesPage = lazy(() => import('./pages/admin/ConfiguracoesPage'))
+const LocalizacaoPage = lazy(() => import('./pages/admin/LocalizacaoPage'))
+const VistoriaLivrePage = lazy(() => import('./pages/admin/VistoriaLivrePage'))
+const VistoriaLivreExecPage = lazy(() => import('./pages/admin/VistoriaLivreExecPage'))
+const ChecklistDashPage = lazy(() => import('./pages/admin/ChecklistDashPage'))
+const ChecklistExecPage = lazy(() => import('./pages/admin/ChecklistExecPage'))
+const ChecklistReportPage = lazy(() => import('./pages/ChecklistReportPage'))
+const SindicoPage = lazy(() => import('./pages/sindico/SindicoPage'))
+const QuestionarioPage = lazy(() => import('./pages/QuestionarioPage'))
+const PortalCondominioPage = lazy(() => import('./pages/PortalCondominioPage'))
+const PortalEspacoPage = lazy(() => import('./pages/PortalEspacoPage'))
+const PontoQrPage = lazy(() => import('./pages/PontoQrPage'))
+const AtividadesPage = lazy(() => import('./pages/admin/AtividadesPage'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -44,6 +47,7 @@ export default function App() {
   return (
     <ErrorBoundary>
     <ConfirmProvider>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -101,7 +105,7 @@ export default function App() {
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-
+    </Suspense>
     </ConfirmProvider>
     </ErrorBoundary>
   )

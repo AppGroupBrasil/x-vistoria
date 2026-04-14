@@ -7,6 +7,8 @@ import toast from 'react-hot-toast'
 import { Eye, EyeOff } from 'lucide-react'
 import SeoHead from '../components/SeoHead'
 
+const NUMERIC_PASSWORD_REGEX = /^\d{6}$/
+
 export default function RegisterPage() {
   const [form, setForm] = useState({
     empresa_nome: '',
@@ -33,8 +35,8 @@ export default function RegisterPage() {
       return
     }
 
-    if (form.senha.length < 6) {
-      toast.error('A senha deve ter no mínimo 6 caracteres')
+    if (!NUMERIC_PASSWORD_REGEX.test(form.senha)) {
+      toast.error('A senha deve conter exatamente 6 dígitos numéricos')
       return
     }
 
@@ -120,7 +122,7 @@ export default function RegisterPage() {
                 <input
                   id="reg-senha"
                   type={show ? 'text' : 'password'} value={form.senha} onChange={set('senha')}
-                  className="input pr-10" placeholder="Mínimo 6 caracteres" required
+                  className="input pr-10" placeholder="6 dígitos numéricos" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" required
                 />
                 <button type="button" onClick={() => setShow(!show)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">

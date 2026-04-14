@@ -1,5 +1,6 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 COPY package*.json ./
 RUN npm install

@@ -3,12 +3,15 @@ import { UsuariosService } from './usuarios.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, IsEnum, IsBoolean, MinLength } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsEnum, IsBoolean, Matches } from 'class-validator';
+
+const NUMERIC_PASSWORD_REGEX = /^\d{6}$/;
+const NUMERIC_PASSWORD_MESSAGE = 'Senha deve conter exatamente 6 dígitos numéricos.';
 
 class CriarUsuarioDto {
   @IsString({ message: 'Nome é obrigatório.' }) nome: string;
   @IsEmail({}, { message: 'Email inválido.' }) email: string;
-  @IsString({ message: 'Senha é obrigatória.' }) @MinLength(6, { message: 'Senha deve ter pelo menos 6 caracteres.' }) senha: string;
+  @IsString({ message: 'Senha é obrigatória.' }) @Matches(NUMERIC_PASSWORD_REGEX, { message: NUMERIC_PASSWORD_MESSAGE }) senha: string;
   @IsOptional() @IsEnum(['admin', 'supervisor'], { message: 'Perfil inválido.' }) role?: string;
   @IsOptional() @IsString() telefone?: string;
   @IsOptional() @IsBoolean() pode_editar?: boolean;
@@ -19,7 +22,7 @@ class AtualizarUsuarioDto {
   @IsOptional() @IsString() nome?: string;
   @IsOptional() @IsString() telefone?: string;
   @IsOptional() @IsEnum(['admin', 'supervisor'], { message: 'Perfil inválido.' }) role?: string;
-  @IsOptional() @IsString() @MinLength(6, { message: 'Senha deve ter pelo menos 6 caracteres.' }) senha?: string;
+  @IsOptional() @IsString() @Matches(NUMERIC_PASSWORD_REGEX, { message: NUMERIC_PASSWORD_MESSAGE }) senha?: string;
   @IsOptional() @IsBoolean() ativo?: boolean;
   @IsOptional() @IsBoolean() pode_editar?: boolean;
   @IsOptional() @IsBoolean() pode_excluir?: boolean;

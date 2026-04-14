@@ -1,25 +1,72 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private readonly openai: OpenAI;
-  private readonly anthropic: Anthropic;
+  private readonly openai?: OpenAI;
+  private readonly anthropic?: Anthropic;
 
   constructor(private readonly config: ConfigService) {
-    this.openai = new OpenAI({ apiKey: config.get('OPENAI_API_KEY') });
-    this.anthropic = new Anthropic({ apiKey: config.get('ANTHROPIC_API_KEY') });
+    const openAiKey = config.get<string>('OPENAI_API_KEY');
+    const anthropicKey = config.get<string>('ANTHROPIC_API_KEY');
+
+    if (openAiKey) {
+      this.openai = new OpenAI({ apiKey: openAiKey });
+    }
+
+    if (anthropicKey) {
+      this.anthropic = new Anthropic({ apiKey: anthropicKey });
+    }
+  }
+
+  getTempExtension(mimetype: string, originalname?: string) {
+    const fromName = originalname ? path.extname(originalname) : '';
+    if (fromName) {
+      return fromName;
+    }
+
+    const map: Record<string, string> = {
+      'audio/webm': '.webm',
+      'video/webm': '.webm',
+      'audio/mp4': '.mp4',
+      'audio/m4a': '.m4a',
+      'audio/mpeg': '.mp3',
+      'audio/mp3': '.mp3',
+      'audio/mpga': '.mp3',
+      'audio/wav': '.wav',
+      'audio/x-wav': '.wav',
+      'audio/ogg': '.ogg',
+    };
+
+    return map[mimetype] || '.bin';
+  }
+
+  private ensureOpenAiConfigured() {
+    if (!this.openai) {
+      throw new ServiceUnavailableException('Transcrição de áudio indisponível no momento.');
+    }
+  }
+
+  private ensureAnthropicConfigured() {
+    if (!this.anthropic) {
+      throw new ServiceUnavailableException('Correção de texto por IA indisponível no momento.');
+    }
   }
 
   async transcreverAudio(audioPath: string): Promise<string> {
+    this.ensureOpenAiConfigured();
+
+    const openai = this.openai;
+
     const audioFile = fs.createReadStream(audioPath);
 
     this.logger.log(`Transcrevendo áudio: ${audioPath}`);
-    const transcription = await this.openai.audio.transcriptions.create({
+    const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: 'whisper-1',
       language: 'pt',
@@ -34,7 +81,11 @@ export class AiService {
     textoBruto: string,
     contexto: { pergunta: string; condominio: string; categoria: string },
   ): Promise<string> {
-    const mensagem = await this.anthropic.messages.create({
+    this.ensureAnthropicConfigured();
+
+    const anthropic = this.anthropic;
+
+    const mensagem = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       messages: [

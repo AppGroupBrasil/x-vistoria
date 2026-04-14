@@ -33,19 +33,21 @@ $SCP site/robots.txt $SERVER:$REMOTE_DIR/site/robots.txt
 $SCP site/sitemap.xml $SERVER:$REMOTE_DIR/site/sitemap.xml
 $SCP site/sitemap-site.xml $SERVER:$REMOTE_DIR/site/sitemap-site.xml
 
-# 3. Copia código
+# 3. Copia código (tar+ssh — funciona em Windows Git Bash, WSL, Linux, Mac)
 echo "[3/5] Enviando código fonte..."
-rsync -avz --exclude node_modules --exclude dist --exclude .git \
-  -e "ssh -i $KEY" \
-  api/ $SERVER:$REMOTE_DIR/api/
+$SSH $SERVER "mkdir -p $REMOTE_DIR/api $REMOTE_DIR/web $REMOTE_DIR/pwa"
 
-rsync -avz --exclude node_modules --exclude dist --exclude .git \
-  -e "ssh -i $KEY" \
-  web/ $SERVER:$REMOTE_DIR/web/
+echo "  -> api/"
+tar --exclude=node_modules --exclude=dist --exclude=.git -cf - -C api . | \
+  $SSH $SERVER "tar xf - -C $REMOTE_DIR/api/"
 
-rsync -avz --exclude node_modules --exclude dist --exclude .git --exclude android \
-  -e "ssh -i $KEY" \
-  pwa/ $SERVER:$REMOTE_DIR/pwa/
+echo "  -> web/"
+tar --exclude=node_modules --exclude=dist --exclude=.git -cf - -C web . | \
+  $SSH $SERVER "tar xf - -C $REMOTE_DIR/web/"
+
+echo "  -> pwa/"
+tar --exclude=node_modules --exclude=dist --exclude=.git --exclude=android -cf - -C pwa . | \
+  $SSH $SERVER "tar xf - -C $REMOTE_DIR/pwa/"
 
 # 4. Build e start no servidor (remove container site antigo se existir)
 echo "[4/5] Build e inicialização..."

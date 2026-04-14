@@ -2,8 +2,11 @@ import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common'
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { IsEmail, IsString, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsOptional, Matches } from 'class-validator';
 import { Throttle } from '@nestjs/throttler';
+
+const NUMERIC_PASSWORD_REGEX = /^\d{6}$/;
+const NUMERIC_PASSWORD_MESSAGE = 'Senha deve conter exatamente 6 dígitos numéricos.';
 
 class LoginDto {
   @IsEmail({}, { message: 'Email inválido.' })
@@ -28,7 +31,7 @@ class RegisterDto {
   email: string;
 
   @IsString({ message: 'Senha é obrigatória.' })
-  @MinLength(6, { message: 'Senha deve ter pelo menos 6 caracteres.' })
+  @Matches(NUMERIC_PASSWORD_REGEX, { message: NUMERIC_PASSWORD_MESSAGE })
   senha: string;
 
   @IsOptional()
@@ -46,7 +49,7 @@ class RedefinirSenhaDto {
   token: string;
 
   @IsString({ message: 'Nova senha é obrigatória.' })
-  @MinLength(6, { message: 'Senha deve ter pelo menos 6 caracteres.' })
+  @Matches(NUMERIC_PASSWORD_REGEX, { message: NUMERIC_PASSWORD_MESSAGE })
   nova_senha: string;
 }
 

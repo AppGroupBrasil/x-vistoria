@@ -10,6 +10,8 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+const MAX_FILES = 10;
+const MAX_LEGENDA_LENGTH = 500;
 
 @ApiTags('upload')
 @ApiBearerAuth()
@@ -55,13 +57,42 @@ export class UploadController {
   }
 
   @Post('fotos')
-  @UseInterceptors(FilesInterceptor('fotos', 10))
+  @UseInterceptors(FilesInterceptor('fotos', MAX_FILES))
   async uploadFotos(
     @UploadedFiles() files: Express.Multer.File[],
     @Body() body: { visita_id: string; resposta_id?: string; legenda?: string },
+    @Request() req,
   ) {
+    if (!body.visita_id) {
+      throw new BadRequestException('visita_id é obrigatório');
+    }
+
     if (!files || files.length === 0) {
       throw new BadRequestException('Nenhum arquivo enviado');
+    }
+
+    const [visita] = await this.sql`
+      SELECT id FROM visitas
+      WHERE id = ${body.visita_id} AND empresa_id = ${req.user.empresa_id}
+    `;
+
+    if (!visita) {
+      throw new NotFoundException('Visita não encontrada');
+    }
+
+    if (body.resposta_id) {
+      const [resposta] = await this.sql`
+        SELECT id FROM respostas
+        WHERE id = ${body.resposta_id} AND visita_id = ${body.visita_id}
+      `;
+
+      if (!resposta) {
+        throw new BadRequestException('resposta_id não pertence à visita informada');
+      }
+    }
+
+    if (body.legenda && body.legenda.length > MAX_LEGENDA_LENGTH) {
+      throw new BadRequestException(`Legenda muito longa. Máximo: ${MAX_LEGENDA_LENGTH} caracteres.`);
     }
 
     for (const file of files) {
@@ -84,7 +115,7 @@ export class UploadController {
         const [foto] = await this.sql`
           INSERT INTO fotos (visita_id, resposta_id, url, thumbnail_url, legenda, tamanho_bytes)
           VALUES (
-            ${body.visita_id},
+            ${visita.id},
             ${body.resposta_id || null},
             ${url},
             ${thumbnail_url},
