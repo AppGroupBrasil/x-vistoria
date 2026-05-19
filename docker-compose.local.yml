@@ -10,6 +10,7 @@ services:
     volumes:
       - db_local_data:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./fix-triggers.sql:/docker-entrypoint-initdb.d/02-fix-triggers.sql:ro
     ports:
       - "5433:5432"
     healthcheck:

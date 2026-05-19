@@ -23,6 +23,7 @@ $SSH $SERVER "mkdir -p $REMOTE_DIR"
 echo "[2/5] Enviando arquivos..."
 $SSH $SERVER "mkdir -p $REMOTE_DIR/site"
 $SCP schema.sql $SERVER:$REMOTE_DIR/schema.sql
+$SCP fix-triggers.sql $SERVER:$REMOTE_DIR/fix-triggers.sql
 $SCP docker-compose.yml $SERVER:$REMOTE_DIR/docker-compose.yml
 $SCP .env $SERVER:$REMOTE_DIR/.env
 $SSH $SERVER "chmod 600 $REMOTE_DIR/.env"

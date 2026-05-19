@@ -41,7 +41,9 @@ async function bootstrap() {
     exclude: ['robots.txt'],
   });
 
-  if (!isProduction) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  if (isDevelopment) {
     const config = new DocumentBuilder()
       .setTitle('X Vistoria API')
       .setDescription('API do sistema X Vistoria Condominial')
