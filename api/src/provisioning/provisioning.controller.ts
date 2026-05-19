@@ -42,12 +42,17 @@ export class ProvisioningController {
 
     let empresaId: string | null = body.metadata?.empresa_id ?? null;
     if (!empresaId) {
-      const [empresa] = await this.sql`
-        INSERT INTO empresas (nome, email, telefone)
-        VALUES (${body.metadata?.empresa_nome || body.nome}, ${body.email}, ${body.telefone || null})
-        RETURNING id
-      `;
-      empresaId = empresa.id;
+      const [existente] = await this.sql`SELECT id FROM empresas WHERE email = ${body.email}`;
+      if (existente) {
+        empresaId = existente.id;
+      } else {
+        const [empresa] = await this.sql`
+          INSERT INTO empresas (nome, email, telefone)
+          VALUES (${body.metadata?.empresa_nome || body.nome}, ${body.email}, ${body.telefone || null})
+          RETURNING id
+        `;
+        empresaId = empresa.id;
+      }
     }
 
     await this.sql`
