@@ -13,7 +13,7 @@ interface ProvisioningBody {
   metadata?: Record<string, any>;
 }
 
-@Controller('api/v1/provisioning')
+@Controller('provisioning')
 export class ProvisioningController {
   private readonly logger = new Logger(ProvisioningController.name);
 
