@@ -26,6 +26,7 @@ import { ChecklistAvulsoModule } from './checklist-avulso/checklist-avulso.modul
 import { QrPontoModule } from './qr-ponto/qr-ponto.module';
 import { AuditModule } from './audit/audit.module';
 import { AuditInterceptor } from './audit/audit.interceptor';
+import { ProvisioningModule } from './provisioning/provisioning.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { AuditInterceptor } from './audit/audit.interceptor';
         GOOGLE_SMTP_APP_PASSWORD: Joi.string().optional().allow(''),
         MAIL_FROM: Joi.string().optional().allow(''),
         PASSWORD_RESET_URL_BASE: Joi.string().optional().allow(''),
+        PROVISIONING_SECRET: Joi.string().min(16).optional().allow(''),
       }),
       validationOptions: { abortEarly: false },
     }),
@@ -72,6 +74,7 @@ import { AuditInterceptor } from './audit/audit.interceptor';
     ChecklistAvulsoModule,
     QrPontoModule,
     AuditModule,
+    ProvisioningModule,
   ],
   controllers: [HealthController, SeoController],
   providers: [
