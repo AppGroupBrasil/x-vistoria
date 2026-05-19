@@ -55,29 +55,28 @@ export class ProvisioningController {
       }
     }
 
-    await this.sql`
-      INSERT INTO usuarios (id, empresa_id, nome, email, senha_hash, role, telefone, pode_editar, pode_excluir, ativo)
-      VALUES (
-        ${body.usuario_id},
-        ${empresaId},
-        ${body.nome},
-        ${body.email},
-        ${'!central!'},
-        ${roleLocal}::role_usuario,
-        ${body.telefone || null},
-        ${podeEditar},
-        ${podeExcluir},
-        ${ativo}
-      )
-      ON CONFLICT (id) DO UPDATE
-        SET nome = EXCLUDED.nome,
-            email = EXCLUDED.email,
-            role = EXCLUDED.role,
-            telefone = EXCLUDED.telefone,
-            pode_editar = EXCLUDED.pode_editar,
-            pode_excluir = EXCLUDED.pode_excluir,
-            ativo = EXCLUDED.ativo
-    `;
+    // Se ja existir usuario com o mesmo email mas id diferente, vincula o id central a ele.
+    const [porEmail] = await this.sql`SELECT id FROM usuarios WHERE email = ${body.email}`;
+    if (porEmail && porEmail.id !== body.usuario_id) {
+      await this.sql`
+        UPDATE usuarios SET id = ${body.usuario_id}, nome = ${body.nome}, role = ${roleLocal}::role_usuario,
+               telefone = ${body.telefone || null}, pode_editar = ${podeEditar},
+               pode_excluir = ${podeExcluir}, ativo = ${ativo}, empresa_id = ${empresaId}
+        WHERE id = ${porEmail.id}
+      `;
+    } else {
+      await this.sql`
+        INSERT INTO usuarios (id, empresa_id, nome, email, senha_hash, role, telefone, pode_editar, pode_excluir, ativo)
+        VALUES (
+          ${body.usuario_id}, ${empresaId}, ${body.nome}, ${body.email}, ${'!central!'},
+          ${roleLocal}::role_usuario, ${body.telefone || null}, ${podeEditar}, ${podeExcluir}, ${ativo}
+        )
+        ON CONFLICT (id) DO UPDATE
+          SET nome = EXCLUDED.nome, email = EXCLUDED.email, role = EXCLUDED.role,
+              telefone = EXCLUDED.telefone, pode_editar = EXCLUDED.pode_editar,
+              pode_excluir = EXCLUDED.pode_excluir, ativo = EXCLUDED.ativo
+      `;
+    }
 
     this.logger.log(`Usuário provisionado ${body.email} (role=${roleLocal}, empresa=${empresaId})`);
     return { ok: true, usuario_id: body.usuario_id, empresa_id: empresaId };
