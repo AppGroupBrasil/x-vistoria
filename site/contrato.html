@@ -198,19 +198,14 @@ footer{background:#060E1A;color:rgba(255,255,255,.5);padding:48px 5% 28px}
 <div class="plan-selector">
   <label>Selecione o plano:</label>
   <div class="plan-cards">
-    <div class="plan-card" data-plan="essencial" data-price="199" data-label="Essencial — até 10 condomínios" onclick="selectPlan(this)">
-      <h4>Essencial</h4>
+    <div class="plan-card active" data-plan="condominio" data-price="199" data-label="1 condomínio" onclick="selectPlan(this)">
+      <h4>1 condomínio</h4>
       <div class="plan-price">R$ 199/mês</div>
-      <div class="plan-desc">Até 10 condomínios</div>
+      <div class="plan-desc">Para um condomínio</div>
     </div>
-    <div class="plan-card active" data-plan="profissional" data-price="299" data-label="Profissional — até 20 condomínios" onclick="selectPlan(this)">
-      <h4>Profissional</h4>
-      <div class="plan-price">R$ 299/mês</div>
-      <div class="plan-desc">Até 20 condomínios</div>
-    </div>
-    <div class="plan-card" data-plan="enterprise" data-price="399" data-label="Enterprise — condomínios ilimitados" onclick="selectPlan(this)">
-      <h4>Enterprise</h4>
-      <div class="plan-price">R$ 399/mês</div>
+    <div class="plan-card" data-plan="administradora" data-price="350" data-label="Administradoras e terceirizadas — condomínios ilimitados" onclick="selectPlan(this)">
+      <h4>Administradoras e terceirizadas</h4>
+      <div class="plan-price">R$ 350/mês</div>
       <div class="plan-desc">Condomínios ilimitados</div>
     </div>
   </div>
@@ -339,15 +334,14 @@ footer{background:#060E1A;color:rgba(255,255,255,.5);padding:48px 5% 28px}
         <div class="clause-num">CLÁUSULA 2ª — DO PLANO E VALOR</div>
         <p>A CONTRATANTE adere ao plano selecionado conforme condições abaixo:</p>
         <div class="plan-display">
-          <span class="plan-name" id="selected-plan-label">Profissional — até 20 condomínios</span>
-          <span class="plan-value" id="selected-plan-value">R$ 299,00/mês</span>
+          <span class="plan-name" id="selected-plan-label">1 condomínio</span>
+          <span class="plan-value" id="selected-plan-value">R$ 199,00/mês</span>
         </div>
         <p>O pagamento deverá ser realizado mensalmente, com vencimento todo dia <strong>10</strong> de cada mês.</p>
         <p><strong>Planos disponíveis:</strong></p>
         <ul>
-          <li><strong>Essencial</strong> — até 10 condomínios — R$ 199,00/mês</li>
-          <li><strong>Profissional</strong> — até 20 condomínios — R$ 299,00/mês</li>
-          <li><strong>Enterprise</strong> — condomínios ilimitados — R$ 399,00/mês</li>
+          <li><strong>1 condomínio</strong> — R$ 199,00/mês</li>
+          <li><strong>Administradoras e terceirizadas</strong> — condomínios ilimitados — R$ 350,00/mês</li>
         </ul>
         <p>Todos os planos incluem acesso completo a todas as funcionalidades do sistema.</p>
       </div>
