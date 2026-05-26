@@ -1,19 +1,34 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../store/auth'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, MessageCircle } from 'lucide-react'
 import SeoHead from '../components/SeoHead'
 
+const STORAGE_KEY = 'xvistoria-web-credenciais'
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [show, setShow] = useState(false)
+  const [lembrar, setLembrar] = useState(true)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
   const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const { email: e, senha: s } = JSON.parse(raw)
+        if (e) setEmail(e)
+        if (s) setSenha(s)
+        setLembrar(true)
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,6 +36,8 @@ export default function LoginPage() {
     setErro('')
     try {
       await login(email, senha)
+      if (lembrar) localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, senha }))
+      else localStorage.removeItem(STORAGE_KEY)
       navigate('/dashboard')
     } catch (err: any) {
       let msg = ''
@@ -97,6 +114,15 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+            <label className="flex items-center gap-2 text-sm text-gray-600 select-none">
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+              />
+              Manter conectado neste dispositivo
+            </label>
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3">
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
