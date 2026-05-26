@@ -1,168 +1,135 @@
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVisitas } from '../api/hooks'
 import { useAuth } from '../store/auth'
-import {
-  ClipboardList, Play, Clock, ChevronRight, LogOut, Loader2, MapPin
-} from 'lucide-react'
+import { ClipboardList, ChevronRight, LogOut, Loader2, MapPin } from 'lucide-react'
+import clsx from 'clsx'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
 
 dayjs.locale('pt-br')
 
+type Filtro = 'hoje' | 'pendentes' | 'concluidas' | 'todas'
+
 const STATUS_LABEL: Record<string, string> = {
   nao_iniciada: 'Não iniciada',
   em_andamento: 'Em andamento',
   pausada: 'Pausada',
-  aguardando_aprovacao: 'Aguardando aprovação',
+  aguardando_aprovacao: 'Aguardando',
   concluida: 'Concluída',
   aprovada: 'Aprovada',
 }
 
-const STATUS_DOT: Record<string, string> = {
-  nao_iniciada: 'bg-gray-400',
-  em_andamento: 'bg-emerald-500',
-  pausada: 'bg-yellow-500',
-  aguardando_aprovacao: 'bg-orange-500',
-  concluida: 'bg-green-500',
-  aprovada: 'bg-green-600',
-}
+const isAberta = (s: string) => ['nao_iniciada', 'em_andamento', 'pausada'].includes(s)
+const isConcluida = (s: string) => ['concluida', 'aprovada', 'aguardando_aprovacao'].includes(s)
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { data: visitas = [], isLoading: loading } = useVisitas()
+  const [filtro, setFiltro] = useState<Filtro>('pendentes')
 
-  // Split by priority: active first, then pending, then done
-  const ativas = visitas.filter((v: any) => v.status === 'em_andamento' || v.status === 'pausada')
-  const pendentes = visitas.filter((v: any) => v.status === 'nao_iniciada')
-  const outras = visitas.filter((v: any) => !['em_andamento', 'pausada', 'nao_iniciada'].includes(v.status))
+  const lista = useMemo(() => {
+    const hoje = dayjs().format('YYYY-MM-DD')
+    return visitas.filter((v: any) => {
+      if (filtro === 'hoje') return dayjs(v.criado_em).format('YYYY-MM-DD') === hoje
+      if (filtro === 'pendentes') return isAberta(v.status)
+      if (filtro === 'concluidas') return isConcluida(v.status)
+      return true
+    })
+  }, [visitas, filtro])
 
-  const handleIrChecklist = (v: any) => {
-    // Go directly to checklist (auto-start happens there)
-    navigate(`/visita/${v.id}/checklist`)
+  const contagem = useMemo(() => ({
+    pendentes: visitas.filter((v: any) => isAberta(v.status)).length,
+    hoje: visitas.filter((v: any) => dayjs(v.criado_em).format('YYYY-MM-DD') === dayjs().format('YYYY-MM-DD')).length,
+    concluidas: visitas.filter((v: any) => isConcluida(v.status)).length,
+  }), [visitas])
+
+  const abrir = (v: any) => {
+    if (isConcluida(v.status)) navigate(`/visita/${v.id}`)
+    else navigate(`/visita/${v.id}/checklist`)
   }
+
+  const tabs: { key: Filtro; label: string; count?: number }[] = [
+    { key: 'pendentes', label: 'Pendentes', count: contagem.pendentes },
+    { key: 'hoje', label: 'Hoje', count: contagem.hoje },
+    { key: 'concluidas', label: 'Concluídas', count: contagem.concluidas },
+    { key: 'todas', label: 'Todas' },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-brand-navy text-white px-4 pt-12 pb-5 safe-top">
-        <div className="flex items-center justify-between mb-1">
+      <div className="bg-brand-navy text-white px-4 pt-12 pb-4 safe-top">
+        <div className="flex items-center justify-between">
           <div>
             <div className="font-bold text-xl">Olá, {user?.nome?.split(' ')[0]}</div>
-            <div className="text-white/60 text-sm">{dayjs().format('dddd, DD [de] MMMM')}</div>
+            <div className="text-white/60 text-xs mt-0.5">{dayjs().format('dddd, DD [de] MMMM')}</div>
           </div>
-          <button onClick={() => { logout(); navigate('/login') }} className="p-2 rounded-xl hover:bg-white/10 text-white/70">
+          <button
+            onClick={() => { logout(); navigate('/login') }}
+            className="p-2 rounded-xl hover:bg-white/10 text-white/70"
+            aria-label="Sair"
+          >
             <LogOut size={20} />
           </button>
         </div>
-        {visitas.length > 0 && (
-          <div className="mt-2 text-xs text-white/50">
-            {ativas.length > 0 && `${ativas.length} em andamento · `}
-            {pendentes.length > 0 && `${pendentes.length} pendente(s)`}
-          </div>
-        )}
+
+        <div className="flex gap-1 mt-4 -mb-1 overflow-x-auto no-scrollbar">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setFiltro(t.key)}
+              className={clsx(
+                'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors',
+                filtro === t.key ? 'bg-white text-brand-navy' : 'bg-white/10 text-white/70'
+              )}
+            >
+              {t.label}{t.count !== undefined && t.count > 0 ? ` · ${t.count}` : ''}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-4">
+      <div className="flex-1 px-4 py-4 space-y-2">
         {loading && (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={32} className="animate-spin text-brand-navy" />
           </div>
         )}
 
-        {!loading && visitas.length === 0 && (
+        {!loading && lista.length === 0 && (
           <div className="card p-10 text-center">
-            <ClipboardList size={48} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-500 font-semibold">Nenhuma vistoria</p>
-            <p className="text-gray-400 text-sm mt-1">Quando o administrador criar uma vistoria, ela aparecerá aqui.</p>
+            <ClipboardList size={40} className="mx-auto mb-3 text-gray-300" />
+            <p className="text-gray-400 text-sm">Nenhuma vistoria nesta lista.</p>
           </div>
         )}
 
-        {!loading && visitas.length > 0 && (
-          <>
-            {/* Active — big CTA cards */}
-            {ativas.length > 0 && (
-              <div>
-                <h2 className="font-bold text-gray-900 text-sm mb-2 uppercase tracking-wider">Continuar</h2>
-                <div className="space-y-3">
-                  {ativas.map((v: any) => (
-                    <button
-                      key={v.id}
-                      onClick={() => handleIrChecklist(v)}
-                      className="card w-full p-4 text-left active:scale-[0.98] transition-transform border-l-4 border-emerald-500"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold text-gray-900 truncate">{v.condominio_nome}</div>
-                          <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                            <MapPin size={10} /> {v.condominio_endereco || '—'}
-                          </div>
-                        </div>
-                        <div className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 flex-shrink-0">
-                          <Play size={14} /> Continuar
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+        {!loading && lista.map((v: any) => {
+          const aberta = isAberta(v.status)
+          return (
+            <button
+              key={v.id}
+              onClick={() => abrir(v)}
+              className={clsx(
+                'card w-full p-4 text-left active:scale-[0.99] transition-transform',
+                aberta && 'border-l-4 border-brand-green'
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-gray-900 truncate">{v.condominio_nome}</div>
+                  <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1 truncate">
+                    <MapPin size={11} /> {v.condominio_endereco || '—'}
+                  </div>
+                  <div className="text-[11px] text-gray-400 mt-1">
+                    {STATUS_LABEL[v.status] || v.status} · {dayjs(v.criado_em).format('DD/MM')}
+                  </div>
                 </div>
+                <ChevronRight size={20} className="text-gray-300 flex-shrink-0" />
               </div>
-            )}
-
-            {/* Pending — action cards */}
-            {pendentes.length > 0 && (
-              <div>
-                <h2 className="font-bold text-gray-900 text-sm mb-2 uppercase tracking-wider">Pendentes</h2>
-                <div className="space-y-3">
-                  {pendentes.map((v: any) => (
-                    <button
-                      key={v.id}
-                      onClick={() => handleIrChecklist(v)}
-                      className="card w-full p-4 text-left active:scale-[0.98] transition-transform"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold text-gray-900 truncate">{v.condominio_nome}</div>
-                          <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                            <MapPin size={10} /> {v.condominio_endereco || '—'}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                            <Clock size={10} /> {dayjs(v.criado_em).format('DD/MM/YYYY')}
-                          </div>
-                        </div>
-                        <div className="bg-brand-green text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 flex-shrink-0">
-                          <Play size={14} /> Começar
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Done — compact list */}
-            {outras.length > 0 && (
-              <div>
-                <h2 className="font-bold text-gray-900 text-sm mb-2 uppercase tracking-wider">Concluídas</h2>
-                <div className="space-y-2">
-                  {outras.map((v: any) => (
-                    <button
-                      key={v.id}
-                      onClick={() => navigate(`/visita/${v.id}`)}
-                      className="card w-full p-3 text-left flex items-center gap-3 active:scale-[0.99] opacity-80"
-                    >
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[v.status] || 'bg-gray-300'}`} />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-gray-700 truncate">{v.condominio_nome}</div>
-                        <div className="text-xs text-gray-400">{STATUS_LABEL[v.status] || v.status}</div>
-                      </div>
-                      <ChevronRight size={16} className="text-gray-300" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [show, setShow] = useState(false)
+  const [lembrar, setLembrar] = useState(true)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const { login } = useAuth()
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setLoading(true)
     setErro('')
     try {
-      await login(email, senha)
+      await login(email, senha, lembrar)
       navigate('/')
     } catch (err: any) {
       setErro(extrairErro(err, 'Email ou senha inválidos.'))
@@ -68,6 +69,15 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+            <label className="flex items-center gap-2 text-sm text-gray-600 select-none mt-1">
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+              />
+              Manter conectado neste dispositivo
+            </label>
             <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
               {loading ? 'Entrando...' : 'Entrar'}
             </button>

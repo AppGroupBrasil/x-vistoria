@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  master
+  admin
+  supervisor
+  sindico
+  vistoriador
+}
+
+enum VisitaStatus {
+  nao_iniciada
+  em_andamento
+  pausada
+  aguardando_aprovacao
+  concluida
+  aprovada
+  reprovada
+}
+
+enum Resultado {
+  ok
+  nao_ok
+  na
+}
+
+enum Prioridade {
+  baixa
+  media
+  alta
+  urgente
+}
+
+enum PendenciaStatus {
+  aberta
+  em_tratativa
+  resolvida
+}
+
+model Empresa {
+  id           String       @id @default(uuid())
+  nome         String
+  cnpj         String?      @unique
+  criadoEm     DateTime     @default(now()) @map("criado_em")
+  usuarios     Usuario[]
+  condominios  Condominio[]
+  templates    Template[]
+  categorias   Categoria[]
+  perguntas    Pergunta[]
+  visitas      Visita[]
+
+  @@map("empresas")
+}
+
+model Usuario {
+  id          String   @id @default(uuid())
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome        String
+  email       String   @unique
+  senhaHash   String   @map("senha_hash")
+  role        Role     @default(vistoriador)
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now()) @map("criado_em")
+  visitasAtribuidas Visita[] @relation("VisitaVistoriador")
+  visitasCriadas    Visita[] @relation("VisitaCriador")
+  mensagens   Mensagem[]
+
+  @@index([empresaId])
+  @@map("usuarios")
+}
+
+model Condominio {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome      String
+  endereco  String?
+  cidade    String?
+  uf        String?
+  sindico   String?
+  sindicoEmail String? @map("sindico_email")
+  criadoEm  DateTime @default(now()) @map("criado_em")
+  visitas   Visita[]
+
+  @@index([empresaId])
+  @@map("condominios")
+}
+
+model Categoria {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome      String
+  ordem     Int      @default(0)
+  perguntas Pergunta[]
+
+  @@index([empresaId])
+  @@map("categorias")
+}
+
+model Pergunta {
+  id          String    @id @default(uuid())
+  empresaId   String    @map("empresa_id")
+  empresa     Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoriaId String?   @map("categoria_id")
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  texto       String
+  ordem       Int       @default(0)
+  templates   TemplatePergunta[]
+  respostas   Resposta[]
+
+  @@index([empresaId])
+  @@index([categoriaId])
+  @@map("perguntas")
+}
+
+model Template {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome      String
+  descricao String?
+  criadoEm  DateTime @default(now()) @map("criado_em")
+  perguntas TemplatePergunta[]
+  visitas   Visita[]
+
+  @@index([empresaId])
+  @@map("templates")
+}
+
+model TemplatePergunta {
+  templateId String   @map("template_id")
+  perguntaId String   @map("pergunta_id")
+  ordem      Int      @default(0)
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  pergunta   Pergunta @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+
+  @@id([templateId, perguntaId])
+  @@map("template_perguntas")
+}
+
+model Visita {
+  id            String        @id @default(uuid())
+  empresaId     String        @map("empresa_id")
+  empresa       Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  condominioId  String        @map("condominio_id")
+  condominio    Condominio    @relation(fields: [condominioId], references: [id], onDelete: Restrict)
+  templateId    String?       @map("template_id")
+  template      Template?     @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  vistoriadorId String?       @map("vistoriador_id")
+  vistoriador   Usuario?      @relation("VisitaVistoriador", fields: [vistoriadorId], references: [id], onDelete: SetNull)
+  criadorId     String?       @map("criador_id")
+  criador       Usuario?      @relation("VisitaCriador", fields: [criadorId], references: [id], onDelete: SetNull)
+  protocolo     String        @unique
+  status        VisitaStatus  @default(nao_iniciada)
+  observacoes   String?
+  iniciadaEm    DateTime?     @map("iniciada_em")
+  finalizadaEm  DateTime?     @map("finalizada_em")
+  criadoEm      DateTime      @default(now()) @map("criado_em")
+  respostas     Resposta[]
+  fotos         Foto[]
+  pendencias    Pendencia[]
+  mensagens     Mensagem[]
+
+  @@index([empresaId])
+  @@index([condominioId])
+  @@index([vistoriadorId])
+  @@map("visitas")
+}
+
+model Resposta {
+  id          String    @id @default(uuid())
+  visitaId    String    @map("visita_id")
+  visita      Visita    @relation(fields: [visitaId], references: [id], onDelete: Cascade)
+  perguntaId  String    @map("pergunta_id")
+  pergunta    Pergunta  @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  resultado   Resultado
+  observacao  String?
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@unique([visitaId, perguntaId])
+  @@map("respostas")
+}
+
+model Foto {
+  id          String   @id @default(uuid())
+  visitaId    String   @map("visita_id")
+  visita      Visita   @relation(fields: [visitaId], references: [id], onDelete: Cascade)
+  perguntaId  String?  @map("pergunta_id")
+  url         String
+  thumbnailUrl String? @map("thumbnail_url")
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  @@index([visitaId])
+  @@map("fotos")
+}
+
+model Pendencia {
+  id          String          @id @default(uuid())
+  visitaId    String          @map("visita_id")
+  visita      Visita          @relation(fields: [visitaId], references: [id], onDelete: Cascade)
+  perguntaId  String?         @map("pergunta_id")
+  titulo      String
+  descricao   String?
+  prioridade  Prioridade      @default(media)
+  responsavel String?
+  status      PendenciaStatus @default(aberta)
+  criadoEm    DateTime        @default(now()) @map("criado_em")
+
+  @@index([visitaId])
+  @@map("pendencias")
+}
+
+model Mensagem {
+  id        String   @id @default(uuid())
+  visitaId  String   @map("visita_id")
+  visita    Visita   @relation(fields: [visitaId], references: [id], onDelete: Cascade)
+  autorId   String?  @map("autor_id")
+  autor     Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  texto     String
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@index([visitaId])
+  @@map("mensagens")
+}
