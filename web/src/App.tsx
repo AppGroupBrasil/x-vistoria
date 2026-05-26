@@ -38,6 +38,7 @@ const PontoQrPage = lazy(() => import('./pages/PontoQrPage'))
 const AtividadesPage = lazy(() => import('./pages/admin/AtividadesPage'))
 const HomeV2Page = lazy(() => import('./pages/v2/HomeV2Page'))
 const CadastrosV2Page = lazy(() => import('./pages/v2/CadastrosV2Page'))
+const QuemOndeV2Page = lazy(() => import('./pages/v2/QuemOndeV2Page'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -67,6 +68,14 @@ export default function App() {
         element={
           <RequireAuth>
             <CadastrosV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/quem-e-onde"
+        element={
+          <RequireAuth>
+            <QuemOndeV2Page />
           </RequireAuth>
         }
       />

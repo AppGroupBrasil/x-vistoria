@@ -84,6 +84,7 @@ model Usuario {
   criadoEm    DateTime @default(now()) @map("criado_em")
   visitasAtribuidas Visita[] @relation("VisitaVistoriador")
   visitasCriadas    Visita[] @relation("VisitaCriador")
+  condominiosResponsavel Condominio[] @relation("CondominioVistoriadorPadrao")
   mensagens   Mensagem[]
 
   @@index([empresaId])
@@ -100,10 +101,13 @@ model Condominio {
   uf        String?
   sindico   String?
   sindicoEmail String? @map("sindico_email")
+  vistoriadorPadraoId String? @map("vistoriador_padrao_id")
+  vistoriadorPadrao   Usuario? @relation("CondominioVistoriadorPadrao", fields: [vistoriadorPadraoId], references: [id], onDelete: SetNull)
   criadoEm  DateTime @default(now()) @map("criado_em")
   visitas   Visita[]
 
   @@index([empresaId])
+  @@index([vistoriadorPadraoId])
   @@map("condominios")
 }
 
