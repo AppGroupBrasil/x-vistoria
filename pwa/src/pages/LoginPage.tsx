@@ -1,9 +1,10 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/auth'
 import { extrairErro } from '../api/erros'
-import toast from 'react-hot-toast'
 import { Eye, EyeOff, MessageCircle } from 'lucide-react'
+
+const STORAGE_KEY = 'xvistoria-pwa-credenciais'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,12 +16,26 @@ export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const { email: e, senha: s } = JSON.parse(raw)
+        if (e) setEmail(e)
+        if (s) setSenha(s)
+        setLembrar(true)
+      }
+    } catch { /* ignore */ }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setErro('')
     try {
       await login(email, senha, lembrar)
+      if (lembrar) localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, senha }))
+      else localStorage.removeItem(STORAGE_KEY)
       navigate('/')
     } catch (err: any) {
       setErro(extrairErro(err, 'Email ou senha inválidos.'))
