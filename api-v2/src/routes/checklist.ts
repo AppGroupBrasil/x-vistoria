@@ -7,7 +7,29 @@ const respostaSchema = z.object({
   pergunta_id: z.string().uuid(),
   resultado: z.enum(['ok', 'nao_ok', 'na']),
   observacao: z.string().optional().default(''),
+  titulo: z.string().optional(),
+  descricao: z.string().optional(),
+  status: z.enum(['aberto', 'em_execucao', 'finalizado']).optional(),
+  problema: z.string().optional(),
+  ocorrencia: z.string().optional(),
+  notificacao: z.string().optional(),
 })
+
+function formatarPergunta(p: any) {
+  return {
+    id: p.id,
+    texto: p.texto,
+    categoria_id: p.categoriaId,
+    ordem: p.ordem,
+    requer_foto: p.requerFoto,
+    requer_descricao: p.requerDescricao,
+    requer_titulo: p.requerTitulo,
+    requer_status: p.requerStatus,
+    requer_problema: p.requerProblema,
+    requer_ocorrencia: p.requerOcorrencia,
+    requer_notificacao: p.requerNotificacao,
+  }
+}
 
 export default async function checklistRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.autenticar)
@@ -20,10 +42,11 @@ export default async function checklistRoutes(app: FastifyInstance) {
   })
 
   app.get('/checklist/perguntas', async (req) => {
-    return prisma.pergunta.findMany({
+    const ps = await prisma.pergunta.findMany({
       where: { empresaId: req.usuario.empresaId },
       orderBy: [{ categoriaId: 'asc' }, { ordem: 'asc' }],
     })
+    return ps.map(formatarPergunta)
   })
 
   app.get('/checklist/templates/:id', async (req, reply) => {
@@ -42,12 +65,7 @@ export default async function checklistRoutes(app: FastifyInstance) {
       id: tpl.id,
       nome: tpl.nome,
       descricao: tpl.descricao,
-      perguntas: tpl.perguntas.map((tp) => ({
-        id: tp.pergunta.id,
-        texto: tp.pergunta.texto,
-        categoria_id: tp.pergunta.categoriaId,
-        ordem: tp.ordem,
-      })),
+      perguntas: tpl.perguntas.map((tp) => ({ ...formatarPergunta(tp.pergunta), ordem: tp.ordem })),
     }
   })
 
@@ -68,15 +86,20 @@ export default async function checklistRoutes(app: FastifyInstance) {
   app.post('/checklist/respostas', async (req, reply) => {
     const parsed = respostaSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ erro: 'Dados inválidos' })
-    const { visita_id, pergunta_id, resultado, observacao } = parsed.data
+    const d = parsed.data
 
-    const v = await prisma.visita.findFirst({ where: { id: visita_id, empresaId: req.usuario.empresaId } })
+    const v = await prisma.visita.findFirst({ where: { id: d.visita_id, empresaId: req.usuario.empresaId } })
     if (!v) return reply.code(404).send({ erro: 'Visita não encontrada' })
 
+    const data = {
+      resultado: d.resultado, observacao: d.observacao,
+      titulo: d.titulo, descricao: d.descricao, status: d.status,
+      problema: d.problema, ocorrencia: d.ocorrencia, notificacao: d.notificacao,
+    }
     const r = await prisma.resposta.upsert({
-      where: { visitaId_perguntaId: { visitaId: visita_id, perguntaId: pergunta_id } },
-      create: { visitaId: visita_id, perguntaId: pergunta_id, resultado, observacao },
-      update: { resultado, observacao },
+      where: { visitaId_perguntaId: { visitaId: d.visita_id, perguntaId: d.pergunta_id } },
+      create: { visitaId: d.visita_id, perguntaId: d.pergunta_id, ...data },
+      update: data,
     })
     return r
   })

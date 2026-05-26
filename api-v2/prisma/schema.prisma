@@ -44,6 +44,12 @@ enum PendenciaStatus {
   resolvida
 }
 
+enum RespostaStatus {
+  aberto
+  em_execucao
+  finalizado
+}
+
 model Empresa {
   id           String       @id @default(uuid())
   nome         String
@@ -114,6 +120,13 @@ model Pergunta {
   categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
   texto       String
   ordem       Int       @default(0)
+  requerFoto         Boolean @default(false) @map("requer_foto")
+  requerDescricao    Boolean @default(false) @map("requer_descricao")
+  requerTitulo       Boolean @default(false) @map("requer_titulo")
+  requerStatus       Boolean @default(false) @map("requer_status")
+  requerProblema     Boolean @default(false) @map("requer_problema")
+  requerOcorrencia   Boolean @default(false) @map("requer_ocorrencia")
+  requerNotificacao  Boolean @default(false) @map("requer_notificacao")
   templates   TemplatePergunta[]
   respostas   Resposta[]
 
@@ -184,6 +197,12 @@ model Resposta {
   pergunta    Pergunta  @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
   resultado   Resultado
   observacao  String?
+  titulo      String?
+  descricao   String?
+  status      RespostaStatus?
+  problema    String?
+  ocorrencia  String?
+  notificacao String?
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
   @@unique([visitaId, perguntaId])

@@ -57,15 +57,30 @@ export default async function templatesRoutes(app: FastifyInstance) {
       texto: z.string().min(1),
       categoria_id: z.string().uuid().optional(),
       ordem: z.number().int().default(0),
+      requer_foto: z.boolean().optional().default(false),
+      requer_descricao: z.boolean().optional().default(false),
+      requer_titulo: z.boolean().optional().default(false),
+      requer_status: z.boolean().optional().default(false),
+      requer_problema: z.boolean().optional().default(false),
+      requer_ocorrencia: z.boolean().optional().default(false),
+      requer_notificacao: z.boolean().optional().default(false),
     })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ erro: 'Dados inválidos' })
+    const d = parsed.data
     const p = await prisma.pergunta.create({
       data: {
-        texto: parsed.data.texto,
-        categoriaId: parsed.data.categoria_id,
-        ordem: parsed.data.ordem,
+        texto: d.texto,
+        categoriaId: d.categoria_id,
+        ordem: d.ordem,
         empresaId: req.usuario.empresaId,
+        requerFoto: d.requer_foto,
+        requerDescricao: d.requer_descricao,
+        requerTitulo: d.requer_titulo,
+        requerStatus: d.requer_status,
+        requerProblema: d.requer_problema,
+        requerOcorrencia: d.requer_ocorrencia,
+        requerNotificacao: d.requer_notificacao,
       },
     })
     return reply.code(201).send(p)

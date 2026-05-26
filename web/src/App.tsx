@@ -36,6 +36,8 @@ const PortalCondominioPage = lazy(() => import('./pages/PortalCondominioPage'))
 const PortalEspacoPage = lazy(() => import('./pages/PortalEspacoPage'))
 const PontoQrPage = lazy(() => import('./pages/PontoQrPage'))
 const AtividadesPage = lazy(() => import('./pages/admin/AtividadesPage'))
+const HomeV2Page = lazy(() => import('./pages/v2/HomeV2Page'))
+const CadastrosV2Page = lazy(() => import('./pages/v2/CadastrosV2Page'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -50,6 +52,25 @@ export default function App() {
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+
+      {/* X Vistoria — nova versão simplificada, em construção */}
+      <Route
+        path="/x-vistoria"
+        element={
+          <RequireAuth>
+            <HomeV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/cadastros"
+        element={
+          <RequireAuth>
+            <CadastrosV2Page />
+          </RequireAuth>
+        }
+      />
+
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
       <Route path="/redefinir-senha/:token" element={<RedefinirSenhaPage />} />

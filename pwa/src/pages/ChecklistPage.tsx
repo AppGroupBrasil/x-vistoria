@@ -10,18 +10,31 @@ import { extrairErro } from '../api/erros'
 import toast from 'react-hot-toast'
 import {
   ArrowLeft, Check, X, Camera, AlertTriangle, MessageSquare, Send,
-  Loader2, Trash2, Plus, FileText
+  Loader2, Trash2, Plus
 } from 'lucide-react'
 import clsx from 'clsx'
 import MensagemModal from '../components/MensagemModal'
 
 type Resultado = 'ok' | 'nao_ok' | 'na' | null
+type Status = 'aberto' | 'em_execucao' | 'finalizado' | null
 
 interface Resposta {
   id?: string
   resultado: Resultado
   observacao: string
+  titulo?: string
+  descricao?: string
+  status?: Status
+  problema?: string
+  ocorrencia?: string
+  notificacao?: string
 }
+
+const STATUS_OPCOES: { v: Status; l: string }[] = [
+  { v: 'aberto', l: 'Aberto' },
+  { v: 'em_execucao', l: 'Em execução' },
+  { v: 'finalizado', l: 'Finalizado' },
+]
 
 export default function ChecklistPage() {
   const { id: visitaId } = useParams<{ id: string }>()
@@ -40,7 +53,6 @@ export default function ChecklistPage() {
 
   const [template, setTemplate] = useState<any>(null)
   const [respostas, setRespostas] = useState<Record<string, Resposta>>({})
-  const [obsAbertaId, setObsAbertaId] = useState<string | null>(null)
   const [showResumo, setShowResumo] = useState(false)
   const [showMsg, setShowMsg] = useState(false)
   const [pendForm, setPendForm] = useState<{ perguntaId?: string } | null>(null)
@@ -63,7 +75,11 @@ export default function ChecklistPage() {
     if (resps.length > 0) {
       const map: Record<string, Resposta> = {}
       resps.forEach((r: any) => {
-        map[r.pergunta_id] = { id: r.id, resultado: r.resultado, observacao: r.observacao || '' }
+        map[r.pergunta_id] = {
+          id: r.id, resultado: r.resultado, observacao: r.observacao || '',
+          titulo: r.titulo || '', descricao: r.descricao || '', status: r.status || null,
+          problema: r.problema || '', ocorrencia: r.ocorrencia || '', notificacao: r.notificacao || '',
+        }
       })
       setRespostas(map)
     }
@@ -89,14 +105,22 @@ export default function ChecklistPage() {
     return grupos
   }, [allPerguntas, cats])
 
-  const salvar = async (perguntaId: string, resultado: Resultado, observacao?: string) => {
-    const body = {
+  const salvar = async (perguntaId: string, resultado: Resultado, observacao?: string, extra?: Partial<Resposta>) => {
+    const atual: Resposta = respostas[perguntaId] || { resultado: null, observacao: '' }
+    const merged = { ...atual, ...(extra || {}) }
+    const body: any = {
       visita_id: visitaId,
       pergunta_id: perguntaId,
       resultado,
-      observacao: observacao ?? respostas[perguntaId]?.observacao ?? '',
+      observacao: observacao ?? atual.observacao ?? '',
+      titulo: merged.titulo || undefined,
+      descricao: merged.descricao || undefined,
+      status: merged.status || undefined,
+      problema: merged.problema || undefined,
+      ocorrencia: merged.ocorrencia || undefined,
+      notificacao: merged.notificacao || undefined,
     }
-    setRespostas((prev) => ({ ...prev, [perguntaId]: { ...(prev[perguntaId] || {}), ...body } }))
+    setRespostas((prev) => ({ ...prev, [perguntaId]: { ...(prev[perguntaId] || { resultado: null, observacao: '' }), ...body, resultado: body.resultado } as Resposta }))
     try { await api.post('/checklist/respostas', body) }
     catch (err: any) { toast.error(extrairErro(err, 'Erro ao salvar resposta.')) }
   }
@@ -219,74 +243,118 @@ export default function ChecklistPage() {
           <div key={grupo.catId ?? 'sem'} className="space-y-2">
             <div className="text-[11px] font-bold text-brand-navy uppercase tracking-wider px-1">{grupo.catNome}</div>
             {grupo.perguntas.map((p, idxLocal) => {
-              const r = respostas[p.id]
-              const obsAberta = obsAbertaId === p.id || !!r?.observacao
+              const r = respostas[p.id] || { resultado: null, observacao: '' }
               const fotosCount = fotosDe(p.id).length
               const pendCount = pendDe(p.id).length
+              const setCampo = (campo: keyof Resposta, valor: any) =>
+                setRespostas((prev) => ({ ...prev, [p.id]: { ...(prev[p.id] || { resultado: null, observacao: '' }), [campo]: valor } as Resposta }))
+              const persistir = () => r.resultado && salvar(p.id, r.resultado)
               return (
-                <div key={p.id} className="card p-3">
-                  <div className="text-[10px] text-gray-400 mb-1">#{idxLocal + 1}</div>
-                  <p className="text-sm font-semibold text-gray-900 leading-snug">{p.texto}</p>
+                <div key={p.id} className="card p-3 space-y-3">
+                  <div>
+                    <div className="text-[10px] text-gray-400 mb-1">#{idxLocal + 1}</div>
+                    <p className="text-sm font-semibold text-gray-900 leading-snug">{p.texto}</p>
+                  </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => salvar(p.id, 'ok')}
                       className={clsx('py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1 transition-all active:scale-95',
-                        r?.resultado === 'ok' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
+                        r.resultado === 'ok' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
                     >
                       <Check size={16} /> Sim
                     </button>
                     <button
                       onClick={() => salvar(p.id, 'nao_ok')}
                       className={clsx('py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1 transition-all active:scale-95',
-                        r?.resultado === 'nao_ok' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
+                        r.resultado === 'nao_ok' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
                     >
                       <X size={16} /> Não
                     </button>
                     <button
                       onClick={() => salvar(p.id, 'na')}
                       className={clsx('py-3 rounded-xl text-sm font-bold transition-all active:scale-95',
-                        r?.resultado === 'na' ? 'bg-gray-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
+                        r.resultado === 'na' ? 'bg-gray-500 text-white' : 'bg-white border border-gray-200 text-gray-600')}
                     >
                       N/A
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1 mt-2">
-                    <label className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-gray-50 text-gray-500 text-xs font-medium active:bg-gray-100 cursor-pointer">
-                      <Camera size={14} />
-                      Foto{fotosCount > 0 ? ` (${fotosCount})` : ''}
-                      <input type="file" accept="image/*" capture="environment" multiple className="hidden"
-                        onChange={(e) => { handleUploadFoto(p.id, e.target.files); e.target.value = '' }} />
-                    </label>
-                    <button
-                      onClick={() => setObsAbertaId(obsAberta ? null : p.id)}
-                      className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-gray-50 text-gray-500 text-xs font-medium active:bg-gray-100"
-                    >
-                      <FileText size={14} /> Obs
-                    </button>
+                  {/* Campos condicionais — só aparecem se foram marcados no cadastro */}
+                  {p.requer_titulo && (
+                    <input
+                      type="text" placeholder="Título"
+                      value={r.titulo || ''} onChange={(e) => setCampo('titulo', e.target.value)} onBlur={persistir}
+                      className="input text-sm"
+                    />
+                  )}
+                  {p.requer_descricao && (
+                    <textarea
+                      placeholder="Descrição" rows={2}
+                      value={r.descricao || ''} onChange={(e) => setCampo('descricao', e.target.value)} onBlur={persistir}
+                      className="input text-sm resize-none"
+                    />
+                  )}
+                  {p.requer_status && (
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-500 mb-1">Status</div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {STATUS_OPCOES.map((s) => (
+                          <button
+                            key={s.v}
+                            onClick={() => { setCampo('status', s.v); setTimeout(persistir, 0) }}
+                            className={clsx('py-2 rounded-lg text-xs font-bold',
+                              r.status === s.v ? 'bg-brand-navy text-white' : 'bg-gray-50 text-gray-600 border border-gray-200')}
+                          >
+                            {s.l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {p.requer_problema && (
+                    <textarea
+                      placeholder="Problema identificado" rows={2}
+                      value={r.problema || ''} onChange={(e) => setCampo('problema', e.target.value)} onBlur={persistir}
+                      className="input text-sm resize-none"
+                    />
+                  )}
+                  {p.requer_ocorrencia && (
+                    <textarea
+                      placeholder="Ocorrência" rows={2}
+                      value={r.ocorrencia || ''} onChange={(e) => setCampo('ocorrencia', e.target.value)} onBlur={persistir}
+                      className="input text-sm resize-none"
+                    />
+                  )}
+                  {p.requer_notificacao && (
+                    <textarea
+                      placeholder="Notificação" rows={2}
+                      value={r.notificacao || ''} onChange={(e) => setCampo('notificacao', e.target.value)} onBlur={persistir}
+                      className="input text-sm resize-none"
+                    />
+                  )}
+
+                  {/* Ações de apoio: foto (se requer) + pendência (sempre disponível) */}
+                  <div className="flex items-center gap-1">
+                    {p.requer_foto && (
+                      <label className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-gray-50 text-gray-500 text-xs font-medium active:bg-gray-100 cursor-pointer">
+                        <Camera size={14} />
+                        Foto{fotosCount > 0 ? ` (${fotosCount})` : ''}
+                        <input type="file" accept="image/*" capture="environment" multiple className="hidden"
+                          onChange={(e) => { handleUploadFoto(p.id, e.target.files); e.target.value = '' }} />
+                      </label>
+                    )}
                     <button
                       onClick={() => setPendForm({ perguntaId: p.id })}
                       className={clsx('flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium',
                         pendCount > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-gray-500 active:bg-gray-100')}
                     >
-                      <AlertTriangle size={14} /> {pendCount > 0 ? pendCount : 'Pend.'}
+                      <AlertTriangle size={14} /> {pendCount > 0 ? pendCount : 'Pendência'}
                     </button>
                   </div>
 
-                  {obsAberta && (
-                    <textarea
-                      value={r?.observacao || ''}
-                      onChange={(e) => setRespostas((prev) => ({ ...prev, [p.id]: { ...(prev[p.id] || { resultado: null, observacao: '' }), observacao: e.target.value } }))}
-                      onBlur={() => r?.resultado && salvar(p.id, r.resultado, r.observacao)}
-                      placeholder="Observação..."
-                      className="input mt-2 text-sm resize-none"
-                      rows={2}
-                    />
-                  )}
-
                   {fotosCount > 0 && (
-                    <div className="flex gap-1 mt-2 overflow-x-auto">
+                    <div className="flex gap-1 overflow-x-auto">
                       {fotosDe(p.id).map((f: any) => (
                         <button key={f.id} onClick={() => setFotoForId(f.id)} className="flex-shrink-0">
                           <img src={f.thumbnail_url || f.url} alt="" className="w-14 h-14 rounded-lg object-cover" loading="lazy" />

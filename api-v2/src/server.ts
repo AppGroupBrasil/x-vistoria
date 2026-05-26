@@ -16,6 +16,7 @@ import mensagensRoutes from './routes/mensagens.js'
 import uploadRoutes from './routes/upload.js'
 import usuariosRoutes from './routes/usuarios.js'
 import templatesRoutes from './routes/templates.js'
+import cadastrosRoutes from './routes/cadastros.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -39,6 +40,7 @@ await app.register(async (api) => {
   await api.register(uploadRoutes)
   await api.register(usuariosRoutes)
   await api.register(templatesRoutes)
+  await api.register(cadastrosRoutes)
 }, { prefix: '/api/v1' })
 
 const port = Number(process.env.PORT || 5100)
