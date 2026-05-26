@@ -13,6 +13,7 @@ const perguntaSchema = z.object({
   requer_problema: z.boolean().optional().default(false),
   requer_ocorrencia: z.boolean().optional().default(false),
   requer_notificacao: z.boolean().optional().default(false),
+  requer_limpeza: z.boolean().optional().default(false),
 })
 
 const cadastroSchema = z.object({
@@ -81,6 +82,7 @@ export default async function cadastrosRoutes(app: FastifyInstance) {
               requerProblema: p.requer_problema,
               requerOcorrencia: p.requer_ocorrencia,
               requerNotificacao: p.requer_notificacao,
+              requerLimpeza: p.requer_limpeza,
             },
           }),
         ),

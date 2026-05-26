@@ -17,6 +17,7 @@ import MensagemModal from '../components/MensagemModal'
 
 type Resultado = 'ok' | 'nao_ok' | 'na' | null
 type Status = 'aberto' | 'em_execucao' | 'finalizado' | null
+type Limpeza = 'ruim' | 'regular' | 'boa' | 'otima' | null
 
 interface Resposta {
   id?: string
@@ -28,12 +29,20 @@ interface Resposta {
   problema?: string
   ocorrencia?: string
   notificacao?: string
+  limpeza?: Limpeza
 }
 
 const STATUS_OPCOES: { v: Status; l: string }[] = [
   { v: 'aberto', l: 'Aberto' },
   { v: 'em_execucao', l: 'Em execução' },
   { v: 'finalizado', l: 'Finalizado' },
+]
+
+const LIMPEZA_OPCOES: { v: Limpeza; l: string; cor: string }[] = [
+  { v: 'ruim', l: 'Ruim', cor: 'bg-red-500' },
+  { v: 'regular', l: 'Regular', cor: 'bg-yellow-500' },
+  { v: 'boa', l: 'Boa', cor: 'bg-emerald-500' },
+  { v: 'otima', l: 'Ótima', cor: 'bg-green-600' },
 ]
 
 export default function ChecklistPage() {
@@ -79,6 +88,7 @@ export default function ChecklistPage() {
           id: r.id, resultado: r.resultado, observacao: r.observacao || '',
           titulo: r.titulo || '', descricao: r.descricao || '', status: r.status || null,
           problema: r.problema || '', ocorrencia: r.ocorrencia || '', notificacao: r.notificacao || '',
+          limpeza: r.limpeza || null,
         }
       })
       setRespostas(map)
@@ -119,6 +129,7 @@ export default function ChecklistPage() {
       problema: merged.problema || undefined,
       ocorrencia: merged.ocorrencia || undefined,
       notificacao: merged.notificacao || undefined,
+      limpeza: merged.limpeza || undefined,
     }
     setRespostas((prev) => ({ ...prev, [perguntaId]: { ...(prev[perguntaId] || { resultado: null, observacao: '' }), ...body, resultado: body.resultado } as Resposta }))
     try { await api.post('/checklist/respostas', body) }
@@ -332,6 +343,23 @@ export default function ChecklistPage() {
                       value={r.notificacao || ''} onChange={(e) => setCampo('notificacao', e.target.value)} onBlur={persistir}
                       className="input text-sm resize-none"
                     />
+                  )}
+                  {p.requer_limpeza && (
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-500 mb-1">Limpeza</div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {LIMPEZA_OPCOES.map((s) => (
+                          <button
+                            key={s.v}
+                            onClick={() => { setCampo('limpeza', s.v); setTimeout(persistir, 0) }}
+                            className={clsx('py-2 rounded-lg text-xs font-bold',
+                              r.limpeza === s.v ? `${s.cor} text-white` : 'bg-gray-50 text-gray-600 border border-gray-200')}
+                          >
+                            {s.l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {/* Ações de apoio: foto (se requer) + pendência (sempre disponível) */}

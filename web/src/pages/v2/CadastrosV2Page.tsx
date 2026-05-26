@@ -14,6 +14,7 @@ const ITEM_KEY: Record<string, string> = {
   'Problema': 'requer_problema',
   'Ocorrência': 'requer_ocorrencia',
   'Notificação': 'requer_notificacao',
+  'Limpeza (Ruim / Regular / Boa / Ótima)': 'requer_limpeza',
 }
 
 const PERIODICIDADES = ['Diária', 'Semanal', 'Quinzenal', 'Mensal'] as const
@@ -26,6 +27,7 @@ const ITENS_VISTORIA = [
   'Problema',
   'Ocorrência',
   'Notificação',
+  'Limpeza (Ruim / Regular / Boa / Ótima)',
 ] as const
 
 export default function CadastrosV2Page() {

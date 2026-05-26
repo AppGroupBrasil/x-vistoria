@@ -13,6 +13,7 @@ const respostaSchema = z.object({
   problema: z.string().optional(),
   ocorrencia: z.string().optional(),
   notificacao: z.string().optional(),
+  limpeza: z.enum(['ruim', 'regular', 'boa', 'otima']).optional(),
 })
 
 function formatarPergunta(p: any) {
@@ -28,6 +29,7 @@ function formatarPergunta(p: any) {
     requer_problema: p.requerProblema,
     requer_ocorrencia: p.requerOcorrencia,
     requer_notificacao: p.requerNotificacao,
+    requer_limpeza: p.requerLimpeza,
   }
 }
 
@@ -95,6 +97,7 @@ export default async function checklistRoutes(app: FastifyInstance) {
       resultado: d.resultado, observacao: d.observacao,
       titulo: d.titulo, descricao: d.descricao, status: d.status,
       problema: d.problema, ocorrencia: d.ocorrencia, notificacao: d.notificacao,
+      limpeza: d.limpeza,
     }
     const r = await prisma.resposta.upsert({
       where: { visitaId_perguntaId: { visitaId: d.visita_id, perguntaId: d.pergunta_id } },

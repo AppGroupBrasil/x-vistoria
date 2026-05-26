@@ -64,6 +64,7 @@ export default async function templatesRoutes(app: FastifyInstance) {
       requer_problema: z.boolean().optional().default(false),
       requer_ocorrencia: z.boolean().optional().default(false),
       requer_notificacao: z.boolean().optional().default(false),
+      requer_limpeza: z.boolean().optional().default(false),
     })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ erro: 'Dados inválidos' })
@@ -81,6 +82,7 @@ export default async function templatesRoutes(app: FastifyInstance) {
         requerProblema: d.requer_problema,
         requerOcorrencia: d.requer_ocorrencia,
         requerNotificacao: d.requer_notificacao,
+        requerLimpeza: d.requer_limpeza,
       },
     })
     return reply.code(201).send(p)

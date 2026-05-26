@@ -50,6 +50,13 @@ enum RespostaStatus {
   finalizado
 }
 
+enum NivelLimpeza {
+  ruim
+  regular
+  boa
+  otima
+}
+
 model Empresa {
   id           String       @id @default(uuid())
   nome         String
@@ -127,6 +134,7 @@ model Pergunta {
   requerProblema     Boolean @default(false) @map("requer_problema")
   requerOcorrencia   Boolean @default(false) @map("requer_ocorrencia")
   requerNotificacao  Boolean @default(false) @map("requer_notificacao")
+  requerLimpeza      Boolean @default(false) @map("requer_limpeza")
   templates   TemplatePergunta[]
   respostas   Resposta[]
 
@@ -203,6 +211,7 @@ model Resposta {
   problema    String?
   ocorrencia  String?
   notificacao String?
+  limpeza     NivelLimpeza?
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
   @@unique([visitaId, perguntaId])
