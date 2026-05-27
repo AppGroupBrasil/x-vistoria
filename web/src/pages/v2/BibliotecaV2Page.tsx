@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle } from 'lucide-react'
+import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle, Pencil, Trash2, Plus, Check, X } from 'lucide-react'
 import clsx from 'clsx'
 import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type CategoriaBib } from '../../data/biblioteca'
 
@@ -46,8 +46,59 @@ export default function BibliotecaV2Page() {
   }
 
   const sair = () => { logout(); navigate('/login') }
-  const lista = BIBLIOTECA[aba]
+
+  const LIB_OVERLAY_KEY = 'xv-biblioteca-overlay'
+  const carregarOverlay = (): Partial<Record<CategoriaBib, string[]>> => {
+    try { return JSON.parse(localStorage.getItem(LIB_OVERLAY_KEY) || '{}') } catch { return {} }
+  }
+  const [overlay, setOverlay] = useState<Partial<Record<CategoriaBib, string[]>>>(carregarOverlay)
+  const salvarOverlay = (next: Partial<Record<CategoriaBib, string[]>>) => {
+    setOverlay(next)
+    localStorage.setItem(LIB_OVERLAY_KEY, JSON.stringify(next))
+  }
+  const lista = overlay[aba] ?? BIBLIOTECA[aba]
   const selAtual = sel[aba]
+
+  const [novaPergunta, setNovaPergunta] = useState('')
+  const [editandoIdx, setEditandoIdx] = useState<number | null>(null)
+  const [editTexto, setEditTexto] = useState('')
+
+  const updateLista = (next: string[]) => salvarOverlay({ ...overlay, [aba]: next })
+
+  const adicionar = () => {
+    const t = novaPergunta.trim()
+    if (!t) return
+    if (lista.includes(t)) { toast.error('Esta pergunta já existe nesta seção'); return }
+    updateLista([t, ...lista])
+    setNovaPergunta('')
+    toast.success('Pergunta adicionada')
+  }
+
+  const excluir = (texto: string) => {
+    updateLista(lista.filter((t) => t !== texto))
+    setSel((prev) => {
+      const next = new Set(prev[aba]); next.delete(texto)
+      return { ...prev, [aba]: next }
+    })
+  }
+
+  const iniciarEdicao = (idx: number, texto: string) => { setEditandoIdx(idx); setEditTexto(texto) }
+  const cancelarEdicao = () => { setEditandoIdx(null); setEditTexto('') }
+  const confirmarEdicao = (idx: number) => {
+    const novo = editTexto.trim()
+    if (!novo) return
+    const antigo = lista[idx]
+    if (novo !== antigo && lista.includes(novo)) { toast.error('Já existe uma pergunta igual'); return }
+    const next = [...lista]; next[idx] = novo
+    updateLista(next)
+    if (selAtual.has(antigo)) {
+      setSel((prev) => {
+        const set = new Set(prev[aba]); set.delete(antigo); set.add(novo)
+        return { ...prev, [aba]: set }
+      })
+    }
+    cancelarEdicao()
+  }
 
   const toggle = (texto: string) => {
     setSel((prev) => {
@@ -152,11 +203,31 @@ export default function BibliotecaV2Page() {
             </a>
           </div>
 
+          {/* Adicionar pergunta nesta seção */}
+          <div className="mb-3 flex gap-2">
+            <input
+              type="text"
+              value={novaPergunta}
+              onChange={(e) => setNovaPergunta(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') adicionar() }}
+              placeholder="Nova pergunta nesta seção…"
+              className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+            />
+            <button
+              onClick={adicionar}
+              disabled={!novaPergunta.trim()}
+              className="px-4 py-2 rounded-xl bg-brand-green text-white text-sm font-bold inline-flex items-center gap-1 active:scale-95 disabled:opacity-50"
+            >
+              <Plus size={14} /> Adicionar
+            </button>
+          </div>
+
           {/* Lista */}
           <div className="space-y-1.5">
-            {lista.map((t) => {
+            {lista.map((t, idx) => {
               const marcada = selAtual.has(t)
               const itensDaQuestao = itensPers[t] || {}
+              const editando = editandoIdx === idx
               return (
                 <div
                   key={t}
@@ -165,13 +236,35 @@ export default function BibliotecaV2Page() {
                     marcada ? 'border-brand-green bg-emerald-50' : 'border-gray-200 bg-white hover:border-gray-300',
                   )}
                 >
-                  <label className="flex items-center gap-3 px-4 py-3 cursor-pointer">
-                    {marcada
-                      ? <CheckSquare size={18} className="text-brand-green flex-shrink-0" />
-                      : <Square size={18} className="text-gray-300 flex-shrink-0" />}
-                    <input type="checkbox" checked={marcada} onChange={() => toggle(t)} className="sr-only" />
-                    <span className="text-sm text-gray-800">{t}</span>
-                  </label>
+                  {editando ? (
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <input
+                        type="text"
+                        value={editTexto}
+                        onChange={(e) => setEditTexto(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmarEdicao(idx)
+                          if (e.key === 'Escape') cancelarEdicao()
+                        }}
+                        autoFocus
+                        className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+                      />
+                      <button onClick={() => confirmarEdicao(idx)} className="p-2 text-brand-green hover:bg-emerald-100 rounded-lg" aria-label="Confirmar"><Check size={16} /></button>
+                      <button onClick={cancelarEdicao} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg" aria-label="Cancelar"><X size={16} /></button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <label className="flex items-center gap-3 flex-1 cursor-pointer min-w-0">
+                        {marcada
+                          ? <CheckSquare size={18} className="text-brand-green flex-shrink-0" />
+                          : <Square size={18} className="text-gray-300 flex-shrink-0" />}
+                        <input type="checkbox" checked={marcada} onChange={() => toggle(t)} className="sr-only" />
+                        <span className="text-sm text-gray-800 truncate">{t}</span>
+                      </label>
+                      <button onClick={() => iniciarEdicao(idx, t)} className="p-1.5 text-gray-400 hover:text-brand-navy" aria-label="Editar"><Pencil size={14} /></button>
+                      <button onClick={() => excluir(t)} className="p-1.5 text-gray-400 hover:text-red-500" aria-label="Excluir"><Trash2 size={14} /></button>
+                    </div>
+                  )}
 
                   {aba === 'personalizada' && marcada && (
                     <div className="px-4 pb-3 pt-1 border-t border-emerald-200">
