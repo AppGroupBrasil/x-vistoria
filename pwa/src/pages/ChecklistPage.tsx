@@ -83,10 +83,10 @@ export default function ChecklistPage() {
   const [fotoForId, setFotoForId] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [obsFinal, setObsFinal] = useState('')
-  const [geoStatus, setGeoStatus] = useState<'pendente' | 'autorizado' | 'negado'>('pendente')
+  const [geoStatus, setGeoStatus] = useState<'consentimento' | 'pendente' | 'autorizado' | 'negado'>('consentimento')
   const [geoInicio, setGeoInicio] = useState<{ lat: number; lng: number } | null>(null)
 
-  const pedirLocalizacao = async () => {
+  const autorizarLocalizacao = async () => {
     setGeoStatus('pendente')
     const g = await obterLocalizacao()
     if (g) {
@@ -97,7 +97,7 @@ export default function ChecklistPage() {
     }
   }
 
-  useEffect(() => { pedirLocalizacao() }, [])
+  const recusarLocalizacao = () => setGeoStatus('negado')
 
   useEffect(() => {
     if (visita?.status === 'nao_iniciada' && geoStatus === 'autorizado' && geoInicio) {
@@ -220,32 +220,66 @@ export default function ChecklistPage() {
         <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
           <MapPin size={40} className="text-brand-green" />
         </div>
-        {geoStatus === 'pendente' ? (
+
+        {geoStatus === 'consentimento' && (
+          <>
+            <div className="bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+              Atenção
+            </div>
+            <h1 className="text-xl font-bold mb-3">Esta vistoria registra a localização</h1>
+            <p className="text-white/80 text-sm mb-6 max-w-sm leading-relaxed">
+              O aplicativo captura a localização de cada vistoria para comprovar que ela foi feita no local.
+              <br /><br />
+              Para continuar, é necessário <strong>autorizar</strong> o acesso à localização. Caso contrário,
+              não será possível realizar a vistoria.
+            </p>
+            <div className="flex flex-col w-full max-w-xs gap-2">
+              <button
+                onClick={autorizarLocalizacao}
+                className="bg-brand-green hover:bg-emerald-600 text-white py-3 rounded-xl font-bold active:scale-95"
+              >
+                Autorizar
+              </button>
+              <button
+                onClick={recusarLocalizacao}
+                className="bg-white/10 hover:bg-white/15 text-white/80 py-3 rounded-xl font-semibold active:scale-95"
+              >
+                Negar
+              </button>
+            </div>
+          </>
+        )}
+
+        {geoStatus === 'pendente' && (
           <>
             <h1 className="text-xl font-bold mb-2">Aguardando localização…</h1>
-            <p className="text-white/70 text-sm mb-6">Autorize a localização no aviso do navegador.</p>
+            <p className="text-white/70 text-sm mb-6">Confirme no aviso do navegador.</p>
             <Loader2 size={28} className="animate-spin text-white/70" />
           </>
-        ) : (
+        )}
+
+        {geoStatus === 'negado' && (
           <>
-            <h1 className="text-xl font-bold mb-2">Localização necessária</h1>
-            <p className="text-white/70 text-sm mb-6 max-w-xs">
-              Para garantir que a vistoria foi feita no local, é obrigatório autorizar o acesso à sua localização.
+            <h1 className="text-xl font-bold mb-3 text-red-300">Não será possível realizar a vistoria</h1>
+            <p className="text-white/80 text-sm mb-6 max-w-sm leading-relaxed">
+              A localização é obrigatória. Autorize o acesso para registrar onde a vistoria está sendo feita.
             </p>
-            <button
-              onClick={pedirLocalizacao}
-              className="w-full max-w-xs bg-brand-green hover:bg-emerald-600 text-white py-3 rounded-xl font-bold active:scale-95"
-            >
-              Tentar de novo
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              className="mt-3 text-white/60 text-sm hover:text-white"
-            >
-              Voltar
-            </button>
+            <div className="flex flex-col w-full max-w-xs gap-2">
+              <button
+                onClick={autorizarLocalizacao}
+                className="bg-brand-green hover:bg-emerald-600 text-white py-3 rounded-xl font-bold active:scale-95"
+              >
+                Autorizar agora
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="bg-white/10 hover:bg-white/15 text-white/80 py-3 rounded-xl font-semibold active:scale-95"
+              >
+                Voltar
+              </button>
+            </div>
             <p className="text-white/40 text-[11px] mt-6 max-w-xs">
-              Se você negou antes, abra as configurações do navegador para este site e libere "Localização".
+              Se você já negou antes no navegador, abra as configurações deste site e libere "Localização".
             </p>
           </>
         )}
