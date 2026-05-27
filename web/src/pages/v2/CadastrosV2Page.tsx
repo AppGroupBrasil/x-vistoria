@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Save, Plus, X, Loader2 } from 'lucide-react'
+import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle } from 'lucide-react'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
@@ -242,6 +242,23 @@ export default function CadastrosV2Page() {
             >
               <Plus size={16} /> Adicionar pergunta
             </button>
+
+            <div className="mt-6 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-800">Precisa de algum campo personalizado?</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Solicite que colocamos em poucas horas, sem nenhum custo adicional.
+                </p>
+              </div>
+              <a
+                href="https://wa.me/5511933284364?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20campo%20personalizado%20para%20o%20question%C3%A1rio%20da%20minha%20vistoria."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-sm font-bold hover:bg-[#1ebe57] active:scale-95"
+              >
+                <MessageCircle size={16} /> Solicitar pelo WhatsApp
+              </a>
+            </div>
           </div>
 
           {/* 5. Salvar modelo */}
