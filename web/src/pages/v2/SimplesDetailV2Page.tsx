@@ -84,7 +84,7 @@ export default function SimplesDetailV2Page() {
                 <img src="/logo.png" alt="" className="w-12 h-12 rounded-lg" />
                 <div>
                   <div className="font-extrabold text-2xl text-brand-navy leading-none">X <span className="text-brand-green">Vistoria</span></div>
-                  <div className="text-[10px] tracking-widest uppercase text-gray-500">Vistoria simples</div>
+                  <div className="text-[10px] tracking-widest uppercase text-gray-500">Vistoria</div>
                 </div>
               </div>
               <h1 className="text-3xl font-extrabold text-gray-900 mt-3">{v.condominio_nome || TIPO_LABEL[v.tipo] || v.tipo}</h1>

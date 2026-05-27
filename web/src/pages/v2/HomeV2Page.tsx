@@ -6,7 +6,7 @@ type Passo = { topo?: string; titulo?: string; icon: any; to?: string }
 
 const PASSOS: Passo[] = [
   { topo: 'Primeiro passo', titulo: 'Cadastros', icon: UserPlus, to: '/x-vistoria/cadastros' },
-  { topo: 'Segundo passo', titulo: 'Vistoria simples', icon: Zap, to: '/x-vistoria/simples' },
+  { topo: 'Segundo passo', titulo: 'Vistoria', icon: Zap, to: '/x-vistoria/simples' },
   { topo: 'Terceiro passo', titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
   { topo: 'Quarto passo', titulo: 'Biblioteca', icon: Library, to: '/x-vistoria/biblioteca' },
   { topo: 'Quinto passo', titulo: 'Notificações', icon: Bell, to: '/x-vistoria/notificacoes' },

@@ -55,7 +55,7 @@ function Conteudo({ geo }: { geo: { lat: number; lng: number } }) {
       <main className="flex-1 px-6 py-10 flex justify-center">
         <div className="w-full max-w-4xl">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-extrabold text-brand-navy">Vistoria simples</h1>
+            <h1 className="text-3xl font-extrabold text-brand-navy">Vistoria</h1>
             <p className="text-gray-500 mt-1">Escolha o tipo de vistoria. Você adiciona itens e no final salva e envia.</p>
           </div>
 
