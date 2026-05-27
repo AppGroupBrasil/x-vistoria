@@ -6,6 +6,7 @@ import {
   ArrowLeft, LogOut, Plus, X, Camera, Send, Loader2,
   AlertTriangle, Star, Library,
 } from 'lucide-react'
+import MicDictar from '../../components/MicDictar'
 import clsx from 'clsx'
 import { TIPOS } from './SimplesV2Page'
 import GeoGate from '../../components/GeoGate'
@@ -382,12 +383,15 @@ function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Part
               </button>
             </div>
             <FotoInput value={item.ocFoto ?? null} onChange={(f) => onPatch({ ocFoto: f })} label="Foto da ocorrência" />
-            <textarea
-              placeholder="Descrição da ocorrência"
-              value={item.ocDescricao || ''}
-              onChange={(e) => onPatch({ ocDescricao: e.target.value })}
-              className="input text-sm resize-none w-full" rows={4}
-            />
+            <div className="flex items-start gap-2">
+              <textarea
+                placeholder="Descrição da ocorrência"
+                value={item.ocDescricao || ''}
+                onChange={(e) => onPatch({ ocDescricao: e.target.value })}
+                className="input text-sm resize-none flex-1" rows={4}
+              />
+              <MicDictar onTexto={(t) => onPatch({ ocDescricao: ((item.ocDescricao || '') ? item.ocDescricao + ' ' : '') + t })} contexto={{ categoria: 'ocorrencia' }} />
+            </div>
             <div className="flex gap-2 justify-end">
               {temOcorrencia && (
                 <button
@@ -431,9 +435,12 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
             <OcorrenciaToggle item={item} onPatch={onPatch} />
           </div>
           <MultiFotoAdd value={item.fotosExtras || []} onChange={(fs) => onPatch({ fotosExtras: fs })} />
-          <textarea placeholder="Descrição" rows={2}
-            value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
-            className="input text-sm resize-none" />
+          <div className="flex items-start gap-2">
+            <textarea placeholder="Descrição" rows={2}
+              value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
+              className="input text-sm resize-none flex-1" />
+            <MicDictar onTexto={(t) => onPatch({ descricao: (item.descricao ? item.descricao + ' ' : '') + t })} contexto={{ categoria: 'foto-descricao' }} />
+          </div>
         </>
       )}
 
@@ -459,9 +466,12 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
             <div className="rounded-xl bg-orange-50 border border-orange-200 p-3 space-y-2">
               <div className="text-[11px] font-bold text-orange-700">Problema identificado</div>
               <FotoInput value={item.problemaFoto} onChange={(f) => onPatch({ problemaFoto: f })} />
-              <textarea placeholder="Descrever problema" rows={2}
-                value={item.problemaDesc} onChange={(e) => onPatch({ problemaDesc: e.target.value })}
-                className="input text-sm resize-none" />
+              <div className="flex items-start gap-2">
+                <textarea placeholder="Descrever problema" rows={2}
+                  value={item.problemaDesc} onChange={(e) => onPatch({ problemaDesc: e.target.value })}
+                  className="input text-sm resize-none flex-1" />
+                <MicDictar onTexto={(t) => onPatch({ problemaDesc: (item.problemaDesc ? item.problemaDesc + ' ' : '') + t })} contexto={{ categoria: 'checklist-problema', pergunta: item.nome }} />
+              </div>
             </div>
           )}
         </>
@@ -469,12 +479,18 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
 
       {tipo === 'pergunta-resposta' && (
         <>
-          <input type="text" placeholder="Pergunta"
-            value={item.pergunta} onChange={(e) => onPatch({ pergunta: e.target.value })}
-            className="input text-sm" />
-          <textarea placeholder="Resposta" rows={2}
-            value={item.resposta} onChange={(e) => onPatch({ resposta: e.target.value })}
-            className="input text-sm resize-none" />
+          <div className="flex items-center gap-2">
+            <input type="text" placeholder="Pergunta"
+              value={item.pergunta} onChange={(e) => onPatch({ pergunta: e.target.value })}
+              className="input text-sm flex-1" />
+            <MicDictar onTexto={(t) => onPatch({ pergunta: (item.pergunta ? item.pergunta + ' ' : '') + t })} contexto={{ categoria: 'pergunta-resposta-pergunta' }} />
+          </div>
+          <div className="flex items-start gap-2">
+            <textarea placeholder="Resposta" rows={2}
+              value={item.resposta} onChange={(e) => onPatch({ resposta: e.target.value })}
+              className="input text-sm resize-none flex-1" />
+            <MicDictar onTexto={(t) => onPatch({ resposta: (item.resposta ? item.resposta + ' ' : '') + t })} contexto={{ categoria: 'pergunta-resposta-resposta', pergunta: item.pergunta }} />
+          </div>
           <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} label="Foto (opcional)" />
         </>
       )}

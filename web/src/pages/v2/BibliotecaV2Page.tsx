@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle, Pencil, Trash2, Plus, Check, X } from 'lucide-react'
 import clsx from 'clsx'
 import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type CategoriaBib } from '../../data/biblioteca'
+import MicDictar from '../../components/MicDictar'
 
 const ITENS_PERSONALIZADA = [
   'Assinatura',
@@ -213,6 +214,7 @@ export default function BibliotecaV2Page() {
               placeholder="Nova pergunta nesta seção…"
               className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
             />
+            <MicDictar onTexto={(t) => setNovaPergunta((p) => (p ? p + ' ' : '') + t)} contexto={{ categoria: `biblioteca-${aba}` }} />
             <button
               onClick={adicionar}
               disabled={!novaPergunta.trim()}

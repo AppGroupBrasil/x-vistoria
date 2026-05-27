@@ -4,6 +4,7 @@ import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
 import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library, User } from 'lucide-react'
+import MicDictar from '../../components/MicDictar'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
@@ -260,6 +261,10 @@ export default function CadastrosV2Page() {
                       onChange={(e) => setPerguntaTexto(idx, e.target.value)}
                       placeholder="Ex.: O hall está limpo?"
                       className="flex-1 px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+                    />
+                    <MicDictar
+                      onTexto={(t) => setPerguntaTexto(idx, (p.texto ? p.texto + ' ' : '') + t)}
+                      contexto={{ condominio, categoria: 'questionario-pergunta' }}
                     />
                     {perguntas.length > 1 && (
                       <button

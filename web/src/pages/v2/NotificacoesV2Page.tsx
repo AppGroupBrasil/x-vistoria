@@ -4,6 +4,7 @@ import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
 import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X } from 'lucide-react'
+import MicDictar from '../../components/MicDictar'
 
 type CondominioCad = { id: string; nome: string }
 
@@ -359,21 +360,27 @@ export default function NotificacoesV2Page() {
                 </div>
               )}
 
-              <input
-                type="text"
-                value={notifTitulo}
-                onChange={(e) => setNotifTitulo(e.target.value)}
-                placeholder="Título da notificação (ex.: Vazamento no 3º andar)"
-                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={notifTitulo}
+                  onChange={(e) => setNotifTitulo(e.target.value)}
+                  placeholder="Título da notificação (ex.: Vazamento no 3º andar)"
+                  className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+                />
+                <MicDictar onTexto={(t) => setNotifTitulo((p) => (p ? p + ' ' : '') + t)} contexto={{ categoria: 'notificacao-titulo' }} />
+              </div>
 
-              <textarea
-                value={notifDesc}
-                onChange={(e) => setNotifDesc(e.target.value)}
-                placeholder="Descrição (detalhe a ocorrência ou o aviso)"
-                rows={4}
-                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none resize-none"
-              />
+              <div className="flex items-start gap-2">
+                <textarea
+                  value={notifDesc}
+                  onChange={(e) => setNotifDesc(e.target.value)}
+                  placeholder="Descrição (detalhe a ocorrência ou o aviso)"
+                  rows={4}
+                  className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none resize-none"
+                />
+                <MicDictar onTexto={(t) => setNotifDesc((p) => (p ? p + ' ' : '') + t)} contexto={{ pergunta: notifTitulo, categoria: 'notificacao-descricao' }} />
+              </div>
 
               <div>
                 <p className="text-xs font-bold text-gray-700 mb-2">Imagens (opcional)</p>
