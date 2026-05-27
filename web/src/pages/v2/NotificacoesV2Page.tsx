@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X } from 'lucide-react'
 
 type CondominioCad = { id: string; nome: string }
 
@@ -20,6 +20,29 @@ type Morador = {
 
 const STORAGE = 'xv-moradores'
 const STORAGE_BLOCOS = 'xv-blocos'
+const STORAGE_NOTIF = 'xv-notificacoes-historico'
+
+type NotifImg = { url: string; nome: string }
+type NotifEnviada = {
+  id: string
+  data: string
+  morador_id: string
+  morador_nome: string
+  titulo: string
+  descricao: string
+  imagens: NotifImg[]
+  canais: ('email' | 'whatsapp')[]
+}
+
+function soDigitos(s: string) { return (s || '').replace(/\D/g, '') }
+function montarTexto(titulo: string, descricao: string, imgs: NotifImg[]): string {
+  const linhas = [`*${titulo}*`, '', descricao]
+  if (imgs.length > 0) {
+    linhas.push('', 'Imagens:')
+    imgs.forEach((i, idx) => linhas.push(`${idx + 1}. ${i.url}`))
+  }
+  return linhas.filter((l) => l !== undefined).join('\n')
+}
 const uid = () => Math.random().toString(36).slice(2, 10)
 const carregar = (): Morador[] => {
   try { return JSON.parse(localStorage.getItem(STORAGE) || '[]') } catch { return [] }
@@ -102,6 +125,70 @@ export default function NotificacoesV2Page() {
   const excluirBloco = (nome: string) => {
     const atuais = blocos[blocoCondId] || []
     persistirBlocos({ ...blocos, [blocoCondId]: atuais.filter((b) => b !== nome) })
+  }
+
+  // ---- Notificações enviadas ----
+  const [historico, setHistorico] = useState<NotifEnviada[]>(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_NOTIF) || '[]') } catch { return [] }
+  })
+  const persistirHistorico = (lista: NotifEnviada[]) => {
+    setHistorico(lista)
+    localStorage.setItem(STORAGE_NOTIF, JSON.stringify(lista))
+  }
+
+  const [notifMoradorId, setNotifMoradorId] = useState('')
+  const [notifTitulo, setNotifTitulo] = useState('')
+  const [notifDesc, setNotifDesc] = useState('')
+  const [notifImgs, setNotifImgs] = useState<NotifImg[]>([])
+  const [enviandoImg, setEnviandoImg] = useState(false)
+
+  const uploadImg = async (file: File) => {
+    setEnviandoImg(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file, file.name)
+      const res: any = await api.post('/upload/avulso', fd)
+      setNotifImgs((prev) => [...prev, { url: res.url, nome: file.name }])
+    } catch (e: any) {
+      toast.error(e?.erro || 'Falha no upload')
+    } finally { setEnviandoImg(false) }
+  }
+
+  const moradorSelecionado = moradores.find((m) => m.id === notifMoradorId)
+
+  const enviar = (canais: ('email' | 'whatsapp')[]) => {
+    if (!moradorSelecionado) return toast.error('Selecione um morador')
+    if (!notifTitulo.trim() || !notifDesc.trim()) return toast.error('Preencha título e descrição')
+    if (canais.includes('email') && !moradorSelecionado.email) return toast.error('Este morador não tem e-mail cadastrado')
+    if (canais.includes('whatsapp') && !moradorSelecionado.telefone) return toast.error('Este morador não tem telefone cadastrado')
+
+    const texto = montarTexto(notifTitulo.trim(), notifDesc.trim(), notifImgs)
+
+    if (canais.includes('whatsapp')) {
+      const fone = soDigitos(moradorSelecionado.telefone)
+      const numero = fone.length <= 11 ? `55${fone}` : fone
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+    if (canais.includes('email')) {
+      const subject = encodeURIComponent(notifTitulo.trim())
+      const body = encodeURIComponent(texto)
+      window.location.href = `mailto:${moradorSelecionado.email}?subject=${subject}&body=${body}`
+    }
+
+    const reg: NotifEnviada = {
+      id: uid(),
+      data: new Date().toISOString(),
+      morador_id: moradorSelecionado.id,
+      morador_nome: moradorSelecionado.nome,
+      titulo: notifTitulo.trim(),
+      descricao: notifDesc.trim(),
+      imagens: notifImgs,
+      canais,
+    }
+    persistirHistorico([reg, ...historico])
+    toast.success('Notificação registrada e aberta no canal escolhido')
+    setNotifTitulo(''); setNotifDesc(''); setNotifImgs([])
   }
   const persistir = (lista: Morador[]) => {
     setMoradores(lista)
@@ -201,6 +288,134 @@ export default function NotificacoesV2Page() {
               </p>
             </div>
           </div>
+
+          {/* Composer de notificação */}
+          <section className="p-5 rounded-2xl border-2 border-brand-navy bg-white">
+            <h2 className="text-lg font-bold text-brand-navy">Enviar notificação</h2>
+            <p className="text-sm text-gray-600 mt-1">Compose o aviso e envie via e-mail, WhatsApp ou ambos.</p>
+
+            <div className="mt-4 space-y-3">
+              <select
+                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                value={notifMoradorId}
+                onChange={(e) => setNotifMoradorId(e.target.value)}
+              >
+                <option value="">{moradores.length === 0 ? 'Nenhum morador cadastrado' : 'Selecione o morador destinatário'}</option>
+                {moradores.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nome} — {m.condominio}{m.bloco ? ` Bl.${m.bloco}` : ''}{m.apartamento ? ` Ap.${m.apartamento}` : ''}
+                  </option>
+                ))}
+              </select>
+
+              {moradorSelecionado && (
+                <div className="text-xs text-gray-500 px-1">
+                  {moradorSelecionado.email ? `📧 ${moradorSelecionado.email}` : '📧 (sem e-mail)'}
+                  <span className="mx-2">•</span>
+                  {moradorSelecionado.telefone ? `📱 ${moradorSelecionado.telefone}` : '📱 (sem telefone)'}
+                </div>
+              )}
+
+              <input
+                type="text"
+                value={notifTitulo}
+                onChange={(e) => setNotifTitulo(e.target.value)}
+                placeholder="Título da notificação (ex.: Vazamento no 3º andar)"
+                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+              />
+
+              <textarea
+                value={notifDesc}
+                onChange={(e) => setNotifDesc(e.target.value)}
+                placeholder="Descrição (detalhe a ocorrência ou o aviso)"
+                rows={4}
+                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none resize-none"
+              />
+
+              <div>
+                <p className="text-xs font-bold text-gray-700 mb-2">Imagens (opcional)</p>
+                <div className="flex flex-wrap items-start gap-2">
+                  {notifImgs.map((img, i) => (
+                    <div key={i} className="relative inline-block">
+                      <img src={img.url} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                      <button
+                        onClick={() => setNotifImgs((p) => p.filter((_, idx) => idx !== i))}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+                        aria-label="Remover"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  <label className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 text-gray-500 text-xs font-medium hover:bg-gray-100 ${enviandoImg ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
+                    {enviandoImg ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
+                    {enviandoImg ? 'Enviando…' : 'Adicionar imagem'}
+                    <input
+                      type="file" accept="image/*" className="hidden" disabled={enviandoImg}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        e.target.value = ''
+                        if (f) uploadImg(f)
+                      }}
+                    />
+                  </label>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  As imagens viram links no corpo da mensagem (WhatsApp/e-mail não permitem anexo automático sem API).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
+                <button
+                  onClick={() => enviar(['email'])}
+                  disabled={!moradorSelecionado || !notifTitulo.trim() || !notifDesc.trim()}
+                  className="px-4 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                >
+                  <Mail size={16} /> Enviar por E-mail
+                </button>
+                <button
+                  onClick={() => enviar(['whatsapp'])}
+                  disabled={!moradorSelecionado || !notifTitulo.trim() || !notifDesc.trim()}
+                  className="px-4 py-3 rounded-xl bg-[#25D366] text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                >
+                  <MessageCircle size={16} /> Enviar por WhatsApp
+                </button>
+                <button
+                  onClick={() => enviar(['email', 'whatsapp'])}
+                  disabled={!moradorSelecionado || !notifTitulo.trim() || !notifDesc.trim()}
+                  className="px-4 py-3 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                >
+                  <Send size={16} /> Enviar por ambos
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Histórico de notificações */}
+          {historico.length > 0 && (
+            <section>
+              <h2 className="text-lg font-bold text-brand-navy mb-3">Notificações enviadas ({historico.length})</h2>
+              <div className="space-y-2">
+                {historico.slice(0, 20).map((n) => (
+                  <div key={n.id} className="p-3 rounded-xl border-2 border-gray-200 bg-white">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-gray-800 truncate">{n.titulo}</div>
+                        <div className="text-xs text-gray-500">
+                          Para <strong>{n.morador_nome}</strong> • {new Date(n.data).toLocaleString('pt-BR')}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1 line-clamp-2">{n.descricao}</div>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        {n.canais.includes('email') && <Mail size={14} className="text-blue-600" />}
+                        {n.canais.includes('whatsapp') && <MessageCircle size={14} className="text-[#25D366]" />}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Vínculo unificado */}
           <div className="p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 flex items-start gap-3">
