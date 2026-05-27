@@ -309,7 +309,7 @@ export default function CadastrosV2Page() {
               <button
                 type="button"
                 onClick={() => navigate('/x-vistoria/biblioteca?from=personalizada')}
-                className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-800"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-500/30 hover:bg-blue-700 active:scale-95"
               >
                 <Library size={16} /> Importar da biblioteca
               </button>
