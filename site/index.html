@@ -235,7 +235,7 @@ section{padding:100px 5%}
 /* ── PRICING ────────────────────────────── */
 .pricing{background:var(--white);position:relative;overflow:hidden}
 .pricing::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(0,214,143,.04),transparent 70%);pointer-events:none}
-.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1000px;margin:0 auto}
+.price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,360px));gap:28px;max-width:1000px;margin:0 auto;justify-content:center}
 .price-card{background:var(--g100);border-radius:var(--r-lg);padding:36px 30px;border:1px solid var(--g200);transition:all .3s;position:relative;text-align:center}
 .price-card:hover{transform:translateY(-6px);box-shadow:var(--s-md)}
 .price-card.pop{background:linear-gradient(135deg,#060E1A,var(--navy));border:2px solid var(--accent);color:#fff;transform:scale(1.04);box-shadow:0 20px 60px rgba(0,214,143,.15)}
