@@ -20,6 +20,7 @@ import cadastrosRoutes from './routes/cadastros.js'
 import atribuicoesRoutes from './routes/atribuicoes.js'
 import historicoRoutes from './routes/historico.js'
 import vistoriaSimplesRoutes from './routes/vistoriaSimples.js'
+import aiRoutes from './routes/ai.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -27,7 +28,7 @@ const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || './uploads')
 if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true })
 
 await app.register(cors, { origin: true, credentials: true })
-await app.register(multipart, { limits: { fileSize: 2 * 1024 * 1024 } })
+await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024 } })
 await app.register(fastifyStatic, { root: UPLOAD_DIR, prefix: '/uploads/' })
 await app.register(authPlugin)
 
@@ -47,6 +48,7 @@ await app.register(async (api) => {
   await api.register(atribuicoesRoutes)
   await api.register(historicoRoutes)
   await api.register(vistoriaSimplesRoutes)
+  await api.register(aiRoutes)
 }, { prefix: '/api/v1' })
 
 const port = Number(process.env.PORT || 5100)
