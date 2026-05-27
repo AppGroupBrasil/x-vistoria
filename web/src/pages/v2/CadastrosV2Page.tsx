@@ -360,7 +360,11 @@ export default function CadastrosV2Page() {
           {/* Passo 2 — Quem e Onde (mesclado) */}
           <div className="pt-8 border-t-2 border-gray-200">
             <h2 className="text-2xl font-extrabold text-brand-navy">Quem e Onde</h2>
-            <p className="text-gray-500 mt-1 mb-6">Escolha o funcionário responsável e marque os condomínios sob a responsabilidade dele.</p>
+            <p className="text-gray-500 mt-1 mb-4">Escolha o funcionário responsável e marque os condomínios sob a responsabilidade dele.</p>
+            <div className="mb-6 p-4 rounded-2xl border-2 border-amber-300 bg-amber-50">
+              <p className="text-sm font-bold text-amber-900">⚠️ Observação</p>
+              <p className="text-sm text-amber-800 mt-1">Só utilize esta seção caso tenha mais de um condomínio ou mais de um funcionário.</p>
+            </div>
 
             {carregandoQO && (
               <div className="flex justify-center py-8"><Loader2 size={28} className="animate-spin text-brand-navy" /></div>
