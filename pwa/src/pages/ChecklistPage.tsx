@@ -297,7 +297,7 @@ export default function ChecklistPage() {
                   {/* Campos condicionais — só aparecem se foram marcados no cadastro */}
                   {p.requer_titulo && (
                     <input
-                      type="text" placeholder="Resposta escrita"
+                      type="text" placeholder="Resposta"
                       value={r.titulo || ''} onChange={(e) => setCampo('titulo', e.target.value)} onBlur={persistir}
                       className="input text-sm"
                     />
