@@ -57,7 +57,7 @@
     '@keyframes agb-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}' +
     '@media (prefers-reduced-motion:reduce){.agb-track{animation:none}}';
 
-  function localizarAlvo() {
+  function localizarAlvo(definitivo) {
     var manual = document.getElementById('apps-carousel-root');
     if (manual) return { tipo: 'manual', el: manual };
     var titulos = document.querySelectorAll('h1, h2, h3');
@@ -68,12 +68,17 @@
         return { tipo: 'antes', el: sec || titulos[i] };
       }
     }
+    if (definitivo) {
+      var footer = document.querySelector('footer');
+      if (footer) return { tipo: 'antes', el: footer };
+      if (document.body) return { tipo: 'fim', el: document.body };
+    }
     return null;
   }
 
-  function injetar() {
+  function injetar(definitivo) {
     if (document.getElementById('agb-apps-carousel-style')) return false;
-    var alvo = localizarAlvo();
+    var alvo = localizarAlvo(definitivo);
     if (!alvo) return false;
     var style = document.createElement('style');
     style.id = 'agb-apps-carousel-style';
@@ -85,6 +90,8 @@
     if (alvo.tipo === 'manual') {
       alvo.el.innerHTML = '';
       alvo.el.appendChild(node);
+    } else if (alvo.tipo === 'fim') {
+      alvo.el.appendChild(node);
     } else {
       alvo.el.parentNode.insertBefore(node, alvo.el);
     }
@@ -92,11 +99,12 @@
   }
 
   function tentar() {
-    if (injetar()) return;
+    if (injetar(false)) return;
     var tentativas = 0;
     var t = setInterval(function () {
       tentativas++;
-      if (injetar() || tentativas > 60) clearInterval(t);
+      if (injetar(false)) { clearInterval(t); return; }
+      if (tentativas > 40) { clearInterval(t); injetar(true); }
     }, 250);
   }
 
