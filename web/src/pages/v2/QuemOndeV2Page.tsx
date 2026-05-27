@@ -84,15 +84,34 @@ export default function QuemOndeV2Page() {
             <div className="flex justify-center py-12"><Loader2 size={32} className="animate-spin text-brand-navy" /></div>
           )}
 
-          {!carregando && (
+          {!carregando && funcionarios.length === 0 && condominios.length === 0 && (
+            <div className="card p-8 text-center border-2 border-amber-200 bg-amber-50">
+              <div className="text-3xl mb-2">👈</div>
+              <h2 className="text-lg font-bold text-amber-800 mb-1">Nada cadastrado ainda</h2>
+              <p className="text-sm text-amber-700 mb-5">
+                Antes de atribuir funcionários a condomínios, volte para o <strong>1º passo (Cadastros)</strong> e cadastre seu primeiro condomínio e funcionário.
+              </p>
+              <button
+                onClick={() => navigate('/x-vistoria/cadastros')}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-navy text-white text-sm font-bold active:scale-95"
+              >
+                <ArrowLeft size={16} /> Voltar ao 1º passo
+              </button>
+            </div>
+          )}
+
+          {!carregando && (funcionarios.length > 0 || condominios.length > 0) && (
             <>
               {/* Funcionários */}
               <section>
                 <h2 className="text-base font-bold text-gray-800 mb-2">Funcionário responsável</h2>
                 <p className="text-xs text-gray-500 mb-3">Marque um dos funcionários cadastrados.</p>
                 {funcionarios.length === 0 ? (
-                  <div className="card p-6 text-center text-sm text-gray-500">
-                    Nenhum funcionário cadastrado ainda. Cadastre primeiro em "Cadastros".
+                  <div className="card p-6 text-center text-sm text-gray-600">
+                    Nenhum funcionário cadastrado ainda.{' '}
+                    <button onClick={() => navigate('/x-vistoria/cadastros')} className="text-brand-green font-bold hover:underline">
+                      Voltar ao 1º passo para cadastrar
+                    </button>.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -134,8 +153,11 @@ export default function QuemOndeV2Page() {
                   {selFunc ? 'Marque os condomínios que este funcionário vai vistoriar.' : 'Escolha um funcionário acima para liberar a seleção.'}
                 </p>
                 {condominios.length === 0 ? (
-                  <div className="card p-6 text-center text-sm text-gray-500">
-                    Nenhum condomínio cadastrado ainda.
+                  <div className="card p-6 text-center text-sm text-gray-600">
+                    Nenhum condomínio cadastrado ainda.{' '}
+                    <button onClick={() => navigate('/x-vistoria/cadastros')} className="text-brand-green font-bold hover:underline">
+                      Voltar ao 1º passo para cadastrar
+                    </button>.
                   </div>
                 ) : (
                   <div className="space-y-2">
