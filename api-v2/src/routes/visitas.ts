@@ -11,6 +11,13 @@ const criarSchema = z.object({
 
 const finalizarSchema = z.object({
   observacoes: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+})
+
+const iniciarSchema = z.object({
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 })
 
 function formatar(v: any) {
@@ -87,9 +94,16 @@ export default async function visitasRoutes(app: FastifyInstance) {
     if (!v) return reply.code(404).send({ erro: 'Visita não encontrada' })
 
     if (acao === 'iniciar') {
+      const parsed = iniciarSchema.safeParse(req.body ?? {})
+      const geo = parsed.success ? parsed.data : {}
       const atualizada = await prisma.visita.update({
         where: { id },
-        data: { status: 'em_andamento', iniciadaEm: v.iniciadaEm ?? new Date() },
+        data: {
+          status: 'em_andamento',
+          iniciadaEm: v.iniciadaEm ?? new Date(),
+          latInicio: v.latInicio ?? geo.lat,
+          lngInicio: v.lngInicio ?? geo.lng,
+        },
         include: { condominio: true, vistoriador: true },
       })
       return formatar(atualizada)
@@ -111,6 +125,8 @@ export default async function visitasRoutes(app: FastifyInstance) {
           status: 'aguardando_aprovacao',
           finalizadaEm: new Date(),
           observacoes: parsed.data.observacoes ?? v.observacoes,
+          latFim: parsed.data.lat ?? v.latFim,
+          lngFim: parsed.data.lng ?? v.lngFim,
         },
         include: { condominio: true, vistoriador: true },
       })

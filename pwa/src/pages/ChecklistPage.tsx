@@ -15,6 +15,7 @@ import {
 import clsx from 'clsx'
 import MensagemModal from '../components/MensagemModal'
 import { compactarImagem } from '../lib/compactarImagem'
+import { obterLocalizacao } from '../lib/geo'
 
 type Resultado = 'ok' | 'nao_ok' | 'na' | null
 type Status = 'aberto' | 'em_execucao' | 'finalizado' | null
@@ -84,7 +85,11 @@ export default function ChecklistPage() {
   const [obsFinal, setObsFinal] = useState('')
 
   useEffect(() => {
-    if (visita?.status === 'nao_iniciada') statusMut.mutateAsync({ acao: 'iniciar' }).catch(() => {})
+    if (visita?.status === 'nao_iniciada') {
+      obterLocalizacao().then((geo) => {
+        statusMut.mutateAsync({ acao: 'iniciar', body: geo ?? {} }).catch(() => {})
+      })
+    }
   }, [visita?.status])
 
   useEffect(() => { if (templateData) setTemplate(templateData) }, [templateData])
@@ -180,7 +185,8 @@ export default function ChecklistPage() {
   const handleFinalizar = async () => {
     setEnviando(true)
     try {
-      await statusMut.mutateAsync({ acao: 'finalizar', body: { observacoes: obsFinal } })
+      const geo = await obterLocalizacao()
+      await statusMut.mutateAsync({ acao: 'finalizar', body: { observacoes: obsFinal, ...(geo || {}) } })
       toast.success('Vistoria enviada!')
       navigate('/')
     } catch (err: any) { toast.error(extrairErro(err, 'Erro ao finalizar.')) }
