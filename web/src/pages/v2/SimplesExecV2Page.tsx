@@ -26,6 +26,8 @@ type Foto = { id: string; url: string; nome: string }
 
 interface ItemBase {
   id: string
+  // Fotos adicionais (opcional)
+  fotosExtras?: Foto[]
   // Ocorrência (sempre opcional)
   ocFoto?: Foto | null
   ocDescricao?: string
@@ -303,6 +305,47 @@ function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; on
   )
 }
 
+function MultiFotoAdd({ value, onChange }: { value: Foto[]; onChange: (fs: Foto[]) => void }) {
+  const [enviando, setEnviando] = useState(false)
+  return (
+    <div className="flex flex-wrap items-start gap-2">
+      {value.map((f) => (
+        <div key={f.id} className="relative inline-block">
+          <img src={f.url} alt="" className="w-24 h-24 object-cover rounded-lg" />
+          <button
+            onClick={() => onChange(value.filter((x) => x.id !== f.id))}
+            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+            aria-label="Remover foto"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ))}
+      <label className={clsx(
+        'inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 text-gray-500 text-xs font-medium hover:bg-gray-100',
+        enviando ? 'opacity-60 cursor-wait' : 'cursor-pointer',
+      )}>
+        {enviando ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+        {enviando ? 'Enviando…' : 'Mais imagens'}
+        <input type="file" accept="image/*" capture="environment" multiple className="hidden" disabled={enviando}
+          onChange={async (e) => {
+            const files = Array.from(e.target.files || [])
+            e.target.value = ''
+            if (files.length === 0) return
+            setEnviando(true)
+            try {
+              const novos: Foto[] = []
+              for (const f of files) novos.push(await uploadFoto(f))
+              onChange([...value, ...novos])
+            } catch (err: any) { toast.error(err?.erro || 'Falha no upload') }
+            finally { setEnviando(false) }
+          }}
+        />
+      </label>
+    </div>
+  )
+}
+
 function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Partial<ItemBase>) => void }) {
   const [aberto, setAberto] = useState(false)
   const temOcorrencia = !!item.ocFoto || !!(item.ocDescricao && item.ocDescricao.trim())
@@ -387,6 +430,7 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
             <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} />
             <OcorrenciaToggle item={item} onPatch={onPatch} />
           </div>
+          <MultiFotoAdd value={item.fotosExtras || []} onChange={(fs) => onPatch({ fotosExtras: fs })} />
           <textarea placeholder="Descrição" rows={2}
             value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
             className="input text-sm resize-none" />
