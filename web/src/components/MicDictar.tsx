@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../api/client'
@@ -30,6 +30,13 @@ export default function MicDictar({ onTexto, contexto, className, title }: Props
   const chunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
 
+  const fecharStream = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop())
+    streamRef.current = null
+  }
+
+  useEffect(() => () => { fecharStream() }, [])
+
   const iniciar = async () => {
     if (estado !== 'parado') return
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -46,8 +53,7 @@ export default function MicDictar({ onTexto, contexto, className, title }: Props
       rec.onstop = async () => {
         const tipo = rec.mimeType || 'audio/webm'
         const blob = new Blob(chunksRef.current, { type: tipo })
-        streamRef.current?.getTracks().forEach((t) => t.stop())
-        streamRef.current = null
+        fecharStream()
         if (blob.size < 1024) {
           setEstado('parado')
           toast.error('Áudio muito curto')
@@ -75,6 +81,8 @@ export default function MicDictar({ onTexto, contexto, className, title }: Props
       mediaRef.current = rec
       setEstado('gravando')
     } catch (e: any) {
+      fecharStream()
+      setEstado('parado')
       toast.error('Permissão de microfone negada')
     }
   }

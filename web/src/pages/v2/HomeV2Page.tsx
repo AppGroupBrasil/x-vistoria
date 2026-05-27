@@ -9,7 +9,7 @@ const PASSOS: Passo[] = [
   { key: 'vistoria',     titulo: 'Vistoria', icon: Zap, to: '/x-vistoria/simples' },
   { key: 'historico',    titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
   { key: 'notificacoes', titulo: 'Notificações', icon: Bell, to: '/x-vistoria/notificacoes' },
-  { key: 'timeline',     titulo: 'Timeline', icon: Activity, to: '/x-vistoria/timeline', rolesOnly: ['master', 'admin', 'sindico'] },
+  { key: 'timeline',     titulo: 'Timeline', icon: Activity, to: '/x-vistoria/timeline', rolesOnly: ['master', 'admin', 'sindico', 'supervisor'] },
 ]
 
 const ROLES_VEM_TUDO = new Set(['master', 'admin', 'supervisor', 'sindico'])

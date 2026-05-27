@@ -5,8 +5,14 @@ import { prisma } from '../lib/prisma.js'
 const criar = z.object({ condominio_id: z.string(), nome: z.string().min(1) })
 const lote = z.object({ condominio_id: z.string(), prefixo: z.string().default(''), quantidade: z.number().int().min(1).max(999) })
 
+const GERENCIA = new Set(['master', 'admin', 'sindico', 'supervisor'])
+
 export default async function blocosRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.autenticar)
+  app.addHook('preHandler', async (req, reply) => {
+    if (req.method === 'GET') return
+    if (!GERENCIA.has(req.usuario.role)) return reply.code(403).send({ erro: 'Sem permissão' })
+  })
 
   app.get('/blocos', async (req) => {
     const bs = await prisma.bloco.findMany({

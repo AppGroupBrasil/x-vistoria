@@ -91,7 +91,7 @@ export default function NotificacoesV2Page() {
   }
   // blocoIds usado pra excluir por nome → id no servidor
   const [blocoIds, setBlocoIds] = useState<Record<string, Record<string, string>>>({})
-  useEffect(() => {
+  const recarregarBlocoIds = () => {
     api.get('/blocos').then((r: any) => {
       const ids: Record<string, Record<string, string>> = {}
       for (const b of r as { id: string; condominio_id: string; nome: string }[]) {
@@ -100,7 +100,7 @@ export default function NotificacoesV2Page() {
       }
       setBlocoIds(ids)
     }).catch(() => {})
-  }, [moradores]) // recarrega quando moradores muda (cheap), também ao adicionar bloco abaixo
+  }
 
   const [blocoCondId, setBlocoCondId] = useState<string>('')
   const [blocoNome, setBlocoNome] = useState('')
@@ -117,6 +117,7 @@ export default function NotificacoesV2Page() {
       await api.post('/blocos', { condominio_id: blocoCondId, nome })
       setBlocoNome('')
       recarregarBlocos()
+    recarregarBlocoIds()
     } catch (e: any) { toast.error(e?.erro || 'Erro ao salvar bloco') }
   }
 
@@ -130,6 +131,7 @@ export default function NotificacoesV2Page() {
       if (r.inseridos > 0) toast.success(`${r.inseridos} bloco(s) cadastrado(s)`)
       else toast('Todos os blocos já existem', { icon: 'ℹ️' })
       recarregarBlocos()
+    recarregarBlocoIds()
     } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
@@ -139,6 +141,7 @@ export default function NotificacoesV2Page() {
     try {
       await api.delete(`/blocos/${id}`)
       recarregarBlocos()
+    recarregarBlocoIds()
     } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
@@ -225,6 +228,7 @@ export default function NotificacoesV2Page() {
       .catch(() => { /* silencioso */ })
     recarregarMoradores()
     recarregarBlocos()
+    recarregarBlocoIds()
     recarregarHistorico()
   }, [])
 

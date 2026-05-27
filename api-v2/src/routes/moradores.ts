@@ -27,8 +27,14 @@ function fmt(m: any) {
   }
 }
 
+const GERENCIA = new Set(['master', 'admin', 'sindico', 'supervisor'])
+
 export default async function moradoresRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.autenticar)
+  app.addHook('preHandler', async (req, reply) => {
+    if (req.method === 'GET') return
+    if (!GERENCIA.has(req.usuario.role)) return reply.code(403).send({ erro: 'Sem permissão' })
+  })
 
   app.get('/moradores', async (req) => {
     const ms = await prisma.morador.findMany({

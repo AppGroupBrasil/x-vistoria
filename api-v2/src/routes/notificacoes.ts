@@ -24,8 +24,13 @@ function fmt(n: any) {
   }
 }
 
+const PODE_ENVIAR = new Set(['master', 'admin', 'sindico', 'supervisor', 'vistoriador'])
+
 export default async function notificacoesRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.autenticar)
+  app.addHook('preHandler', async (req, reply) => {
+    if (req.method === 'POST' && !PODE_ENVIAR.has(req.usuario.role)) return reply.code(403).send({ erro: 'Sem permissão' })
+  })
 
   app.get('/notificacoes', async (req) => {
     const ns = await prisma.notificacaoEnviada.findMany({
