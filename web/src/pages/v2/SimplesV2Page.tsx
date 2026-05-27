@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import {
   ArrowLeft, LogOut, Camera, ListChecks, MessageSquareText,
-  CheckSquare, ArrowLeftRight, Star,
+  CheckSquare, ArrowLeftRight, Star, SlidersHorizontal,
 } from 'lucide-react'
 import GeoGate from '../../components/GeoGate'
 
@@ -13,6 +13,7 @@ export const TIPOS = [
   { key: 'conformidade',      titulo: 'Conformidade Sim / Não', desc: 'Lista rápida marcando conforme ou não conforme.',       icon: CheckSquare },
   { key: 'antes-depois',      titulo: 'Antes e Depois',         desc: 'Duas fotos lado a lado + descrição.',                   icon: ArrowLeftRight },
   { key: 'avaliacao',         titulo: 'Avaliação por nota',     desc: 'Cada item de 1 a 5 estrelas.',                          icon: Star },
+  { key: 'personalizada',     titulo: 'Personalizada',          desc: 'Monte o questionário com os itens que precisar.',       icon: SlidersHorizontal },
 ] as const
 
 export default function SimplesV2Page() {

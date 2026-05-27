@@ -3,43 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library, User } from 'lucide-react'
-import MicDictar from '../../components/MicDictar'
+import { ArrowLeft, LogOut, Save, Loader2, User } from 'lucide-react'
 import clsx from 'clsx'
 
-const ITEM_KEY: Record<string, string> = {
-  'Assinatura': 'requer_assinatura',
-  'Campo de resposta': 'requer_titulo',
-  'Conservação (Ruim / Regular / Bom / Ótimo)': 'requer_conservacao',
-  'Descrição': 'requer_descricao',
-  'Foto': 'requer_foto',
-  'Limpeza (Ruim / Regular / Boa / Ótima)': 'requer_limpeza',
-  'Local exato': 'requer_local_exato',
-  'Notificação': 'requer_notificacao',
-  'Ocorrência': 'requer_ocorrencia',
-  'Prazo para resolver': 'requer_prazo',
-  'Problema': 'requer_problema',
-  'Status (Aberto / Em execução / Finalizado)': 'requer_status',
-  'Validade': 'requer_validade',
-}
-
 const PERIODICIDADES = ['Diária', 'Semanal', 'Quinzenal', 'Mensal'] as const
-
-const ITENS_VISTORIA = [
-  'Assinatura',
-  'Campo de resposta',
-  'Conservação (Ruim / Regular / Bom / Ótimo)',
-  'Descrição',
-  'Foto',
-  'Limpeza (Ruim / Regular / Boa / Ótima)',
-  'Local exato',
-  'Notificação',
-  'Ocorrência',
-  'Prazo para resolver',
-  'Problema',
-  'Status (Aberto / Em execução / Finalizado)',
-  'Validade',
-] as const
 
 export default function CadastrosV2Page() {
   const { user, logout } = useAuth()
@@ -48,28 +15,6 @@ export default function CadastrosV2Page() {
   const [condominio, setCondominio] = useState('')
   const [funcionario, setFuncionario] = useState('')
   const [periodicidade, setPeriodicidade] = useState<typeof PERIODICIDADES[number] | ''>('')
-  type Pergunta = { texto: string; itens: Record<string, boolean> }
-  const novaPergunta = (): Pergunta => ({ texto: '', itens: {} })
-  const [perguntas, setPerguntas] = useState<Pergunta[]>([novaPergunta()])
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('xv-import-personalizada')
-      if (raw) {
-        const importados = JSON.parse(raw) as Pergunta[]
-        if (Array.isArray(importados) && importados.length > 0) {
-          // Anexa às perguntas já existentes (ignora as vazias)
-          setPerguntas((atual) => {
-            const sigs = atual.filter((p) => p.texto.trim())
-            const novos = importados.map((p) => ({ texto: p.texto, itens: p.itens || {} }))
-            return sigs.length > 0 ? [...sigs, ...novos] : novos
-          })
-          localStorage.removeItem('xv-import-personalizada')
-          toast.success(`${importados.length} questão(ões) importadas da biblioteca`)
-        }
-      }
-    } catch { /* ignore */ }
-  }, [])
   const [nomeModelo, setNomeModelo] = useState('')
 
   // Passo 2 — Quem e Onde (mesclado no rodapé)
@@ -120,18 +65,11 @@ export default function CadastrosV2Page() {
 
   const sair = () => { logout(); navigate('/login') }
 
-  const setPerguntaTexto = (idx: number, texto: string) =>
-    setPerguntas((prev) => prev.map((p, i) => (i === idx ? { ...p, texto } : p)))
-
-  const togglePerguntaItem = (idx: number, item: string) =>
-    setPerguntas((prev) => prev.map((p, i) => i === idx ? { ...p, itens: { ...p.itens, [item]: !p.itens[item] } } : p))
-
   const [salvando, setSalvando] = useState(false)
 
   const handleSalvar = async () => {
     if (!condominio.trim()) return toast.error('Informe o nome do condomínio')
     if (!funcionario.trim()) return toast.error('Informe o nome do funcionário')
-    if (perguntas.every((p) => !p.texto.trim())) return toast.error('Adicione pelo menos uma pergunta')
 
     setSalvando(true)
     try {
@@ -141,15 +79,7 @@ export default function CadastrosV2Page() {
         periodicidade: periodicidade || undefined,
         salvar_modelo: !!nomeModelo.trim(),
         nome_modelo: nomeModelo.trim() || undefined,
-        perguntas: perguntas
-          .filter((p) => p.texto.trim())
-          .map((p) => {
-            const flags: Record<string, boolean> = {}
-            Object.entries(ITEM_KEY).forEach(([label, key]) => {
-              flags[key] = !!p.itens[label]
-            })
-            return { texto: p.texto.trim(), ...flags }
-          }),
+        perguntas: [],
       }
       const res: any = await api.post('/cadastros', payload)
       toast.success(`Vistoria criada! Protocolo #${res.protocolo}`)
@@ -245,100 +175,7 @@ export default function CadastrosV2Page() {
             </div>
           </div>
 
-          {/* 4. Questionário da vistoria */}
-          <div>
-            <div className="block text-base font-bold text-gray-800 mb-2">Questionário da vistoria</div>
-            <p className="text-xs text-gray-500 mb-3">Escreva cada pergunta que o vistoriador deverá responder.</p>
-
-            <div className="space-y-4">
-              {perguntas.map((p, idx) => (
-                <div key={idx} className="rounded-2xl border-2 border-gray-200 p-4 bg-white">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 w-6 text-right">{idx + 1}.</span>
-                    <input
-                      type="text"
-                      value={p.texto}
-                      onChange={(e) => setPerguntaTexto(idx, e.target.value)}
-                      placeholder="Ex.: O hall está limpo?"
-                      className="flex-1 px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
-                    />
-                    <MicDictar
-                      onTexto={(t) => setPerguntaTexto(idx, (p.texto ? p.texto + ' ' : '') + t)}
-                      contexto={{ condominio, categoria: 'questionario-pergunta' }}
-                    />
-                    {perguntas.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setPerguntas((prev) => prev.filter((_, i) => i !== idx))}
-                        className="p-2 text-gray-400 hover:text-red-500"
-                        aria-label="Remover pergunta"
-                      >
-                        <X size={18} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="mt-3 ml-8 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {ITENS_VISTORIA.map((it) => (
-                      <label
-                        key={it}
-                        className={clsx(
-                          'flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm',
-                          p.itens[it]
-                            ? 'border-brand-green bg-emerald-50'
-                            : 'border-gray-200 bg-white hover:border-gray-300',
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!!p.itens[it]}
-                          onChange={() => togglePerguntaItem(idx, it)}
-                          className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
-                        />
-                        <span className="font-medium text-gray-800">{it}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setPerguntas((prev) => [...prev, novaPergunta()])}
-                className="flex items-center gap-2 text-sm font-bold text-brand-green hover:underline"
-              >
-                <Plus size={16} /> Adicionar pergunta
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/x-vistoria/biblioteca?from=personalizada')}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-500/30 hover:bg-blue-700 active:scale-95"
-              >
-                <Library size={16} /> Importar da biblioteca
-              </button>
-            </div>
-
-            <div className="mt-6 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-bold text-gray-800">Precisa de algum campo personalizado?</p>
-                <p className="text-xs text-gray-600 mt-0.5">
-                  Solicite que colocamos em poucas horas, sem nenhum custo adicional.
-                </p>
-              </div>
-              <a
-                href="https://wa.me/5511933284364?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20campo%20personalizado%20para%20o%20question%C3%A1rio%20da%20minha%20vistoria."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-sm font-bold hover:bg-[#1ebe57] active:scale-95"
-              >
-                <MessageCircle size={16} /> Solicitar pelo WhatsApp
-              </a>
-            </div>
-          </div>
-
-          {/* 5. Salvar */}
+          {/* 4. Salvar */}
           <div>
             <label htmlFor="nome-modelo" className="block text-base font-bold text-gray-800 mb-2">
               Salvar como modelo reutilizável (opcional)

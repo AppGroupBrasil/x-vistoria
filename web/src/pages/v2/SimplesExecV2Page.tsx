@@ -143,6 +143,7 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
       case 'conformidade':     novo = { ...base, item: '', conforme: null } as ConformidadeItem; break
       case 'antes-depois':     novo = { ...base, antes: null, depois: null, descricao: '' } as AntesDepoisItem; break
       case 'avaliacao':        novo = { ...base, item: '', nota: 0 } as AvaliacaoItem; break
+      case 'personalizada':    novo = { ...base, pergunta: '', itens: {}, foto: null, descricao: '', status: '', conservacao: '', limpeza: '', localExato: '', prazo: '', validade: '', problema: '', resposta: '', notificacao: false, assinatura: '' } as any; break
       default: return
     }
     setItens((prev) => [...prev, novo])
@@ -417,6 +418,123 @@ function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Part
   )
 }
 
+const ITENS_PERSONALIZADA = [
+  'Foto', 'Descrição', 'Campo de resposta', 'Local exato', 'Problema',
+  'Conservação', 'Limpeza', 'Status', 'Prazo para resolver', 'Validade',
+  'Notificação', 'Ocorrência', 'Assinatura',
+] as const
+
+function PersonalizadaItem({ item, onPatch }: { item: any; onPatch: (p: any) => void }) {
+  const has = (it: string) => !!item.itens?.[it]
+  const toggle = (it: string) => onPatch({ itens: { ...(item.itens || {}), [it]: !has(it) } })
+  const Pill = ({ ativo, onClick, children }: { ativo: boolean; onClick: () => void; children: any }) => (
+    <button type="button" onClick={onClick} className={clsx('px-3 py-2 rounded-lg text-xs font-bold border-2 active:scale-95', ativo ? 'bg-brand-green border-brand-green text-white' : 'bg-white border-gray-200 text-gray-700')}>{children}</button>
+  )
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <input type="text" placeholder="Pergunta" value={item.pergunta || ''}
+          onChange={(e) => onPatch({ pergunta: e.target.value })} className="input text-sm flex-1" />
+        <MicDictar onTexto={(t) => onPatch({ pergunta: (item.pergunta ? item.pergunta + ' ' : '') + t })} contexto={{ categoria: 'personalizada-pergunta' }} />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+        {ITENS_PERSONALIZADA.map((it) => (
+          <label key={it} className={clsx('flex items-center gap-2 px-2 py-1.5 rounded-lg border cursor-pointer text-xs', has(it) ? 'border-brand-green bg-emerald-50' : 'border-gray-200 bg-white')}>
+            <input type="checkbox" checked={has(it)} onChange={() => toggle(it)} className="h-4 w-4 rounded border-gray-300 text-brand-green" />
+            <span className="font-medium text-gray-800">{it}</span>
+          </label>
+        ))}
+      </div>
+
+      {has('Foto') && <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} />}
+
+      {has('Descrição') && (
+        <div className="flex items-start gap-2">
+          <textarea placeholder="Descrição" rows={2} value={item.descricao || ''} onChange={(e) => onPatch({ descricao: e.target.value })} className="input text-sm resize-none flex-1" />
+          <MicDictar onTexto={(t) => onPatch({ descricao: (item.descricao ? item.descricao + ' ' : '') + t })} contexto={{ pergunta: item.pergunta, categoria: 'personalizada-descricao' }} />
+        </div>
+      )}
+
+      {has('Campo de resposta') && (
+        <div className="flex items-start gap-2">
+          <textarea placeholder="Resposta" rows={2} value={item.resposta || ''} onChange={(e) => onPatch({ resposta: e.target.value })} className="input text-sm resize-none flex-1" />
+          <MicDictar onTexto={(t) => onPatch({ resposta: (item.resposta ? item.resposta + ' ' : '') + t })} contexto={{ pergunta: item.pergunta, categoria: 'personalizada-resposta' }} />
+        </div>
+      )}
+
+      {has('Local exato') && (
+        <input type="text" placeholder="Local exato" value={item.localExato || ''} onChange={(e) => onPatch({ localExato: e.target.value })} className="input text-sm" />
+      )}
+
+      {has('Problema') && (
+        <div className="flex items-start gap-2">
+          <textarea placeholder="Descreva o problema" rows={2} value={item.problema || ''} onChange={(e) => onPatch({ problema: e.target.value })} className="input text-sm resize-none flex-1" />
+          <MicDictar onTexto={(t) => onPatch({ problema: (item.problema ? item.problema + ' ' : '') + t })} contexto={{ pergunta: item.pergunta, categoria: 'personalizada-problema' }} />
+        </div>
+      )}
+
+      {has('Conservação') && (
+        <div>
+          <div className="text-xs font-bold text-gray-600 mb-1">Conservação</div>
+          <div className="flex flex-wrap gap-1.5">
+            {['Ruim','Regular','Bom','Ótimo'].map((v) => <Pill key={v} ativo={item.conservacao === v} onClick={() => onPatch({ conservacao: item.conservacao === v ? '' : v })}>{v}</Pill>)}
+          </div>
+        </div>
+      )}
+
+      {has('Limpeza') && (
+        <div>
+          <div className="text-xs font-bold text-gray-600 mb-1">Limpeza</div>
+          <div className="flex flex-wrap gap-1.5">
+            {['Ruim','Regular','Boa','Ótima'].map((v) => <Pill key={v} ativo={item.limpeza === v} onClick={() => onPatch({ limpeza: item.limpeza === v ? '' : v })}>{v}</Pill>)}
+          </div>
+        </div>
+      )}
+
+      {has('Status') && (
+        <div>
+          <div className="text-xs font-bold text-gray-600 mb-1">Status</div>
+          <div className="flex flex-wrap gap-1.5">
+            {['Aberto','Em execução','Finalizado'].map((v) => <Pill key={v} ativo={item.status === v} onClick={() => onPatch({ status: item.status === v ? '' : v })}>{v}</Pill>)}
+          </div>
+        </div>
+      )}
+
+      {has('Prazo para resolver') && (
+        <div>
+          <div className="text-xs font-bold text-gray-600 mb-1">Prazo para resolver</div>
+          <input type="date" value={item.prazo || ''} onChange={(e) => onPatch({ prazo: e.target.value })} className="input text-sm" />
+        </div>
+      )}
+
+      {has('Validade') && (
+        <div>
+          <div className="text-xs font-bold text-gray-600 mb-1">Validade</div>
+          <input type="date" value={item.validade || ''} onChange={(e) => onPatch({ validade: e.target.value })} className="input text-sm" />
+        </div>
+      )}
+
+      {has('Notificação') && (
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" checked={!!item.notificacao} onChange={(e) => onPatch({ notificacao: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-brand-green" />
+          Enviar notificação ao morador depois
+        </label>
+      )}
+
+      {has('Assinatura') && (
+        <input type="text" placeholder="Nome de quem assina" value={item.assinatura || ''} onChange={(e) => onPatch({ assinatura: e.target.value })} className="input text-sm" />
+      )}
+
+      {has('Ocorrência') && (
+        <div className="flex flex-wrap items-start gap-2">
+          <OcorrenciaToggle item={item} onPatch={onPatch} />
+        </div>
+      )}
+    </>
+  )
+}
+
 function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
   tipo: string; item: any; idx: number; onPatch: (p: any) => void; onRemove: () => void
 }) {
@@ -554,7 +672,11 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
         </>
       )}
 
-      {tipo !== 'foto-descricao' && (
+      {tipo === 'personalizada' && (
+        <PersonalizadaItem item={item} onPatch={onPatch} />
+      )}
+
+      {tipo !== 'foto-descricao' && tipo !== 'personalizada' && (
         <div className="flex flex-wrap items-start gap-2">
           <OcorrenciaToggle item={item} onPatch={onPatch} />
         </div>

@@ -258,7 +258,7 @@ const uid = () => Math.random().toString(36).slice(2, 10)
 export function toItens(cat: CategoriaBib, textos: string[]): any[] {
   switch (cat) {
     case 'personalizada':
-      return textos.map((t) => ({ texto: t, itens: {} }))
+      return textos.map((t) => ({ id: uid(), pergunta: t, itens: {}, foto: null, descricao: '', status: '', conservacao: '', limpeza: '', localExato: '', prazo: '', validade: '', problema: '', resposta: '', notificacao: false }))
     case 'foto-descricao':
       return textos.map((t) => ({ id: uid(), foto: null, descricao: t }))
     case 'checklist':
@@ -275,6 +275,5 @@ export function toItens(cat: CategoriaBib, textos: string[]): any[] {
 }
 
 export function destinoURL(cat: CategoriaBib): string {
-  if (cat === 'personalizada') return '/x-vistoria/cadastros'
   return `/x-vistoria/simples/${cat}`
 }
