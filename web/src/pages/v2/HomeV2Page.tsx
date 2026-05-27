@@ -1,15 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
-import { LogOut, UserPlus, UsersRound, Zap, History, Library } from 'lucide-react'
+import { LogOut, UserPlus, Zap, History, Library } from 'lucide-react'
 
 type Passo = { topo?: string; titulo?: string; icon: any; to?: string }
 
 const PASSOS: Passo[] = [
   { topo: 'Primeiro passo', titulo: 'Cadastros', icon: UserPlus, to: '/x-vistoria/cadastros' },
-  { topo: 'Segundo passo', titulo: 'Quem e Onde', icon: UsersRound, to: '/x-vistoria/quem-e-onde' },
-  { topo: 'Terceiro passo', titulo: 'Vistoria simples', icon: Zap, to: '/x-vistoria/simples' },
-  { topo: 'Quarto passo', titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
-  { topo: 'Quinto passo', titulo: 'Biblioteca', icon: Library, to: '/x-vistoria/biblioteca' },
+  { topo: 'Segundo passo', titulo: 'Vistoria simples', icon: Zap, to: '/x-vistoria/simples' },
+  { topo: 'Terceiro passo', titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
+  { topo: 'Quarto passo', titulo: 'Biblioteca', icon: Library, to: '/x-vistoria/biblioteca' },
 ]
 
 export default function HomeV2Page() {
@@ -45,7 +44,7 @@ export default function HomeV2Page() {
           Vistoria para condomínios
         </p>
 
-        <div className="mt-12 w-full max-w-6xl grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="mt-12 w-full max-w-6xl grid grid-cols-2 sm:grid-cols-4 gap-4">
           {PASSOS.map((p, i) => {
             const Icon = p.icon
             return (

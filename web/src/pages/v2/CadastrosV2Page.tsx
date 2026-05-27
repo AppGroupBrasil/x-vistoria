@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library, Users } from 'lucide-react'
+import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library, User } from 'lucide-react'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
@@ -70,6 +70,52 @@ export default function CadastrosV2Page() {
     } catch { /* ignore */ }
   }, [])
   const [nomeModelo, setNomeModelo] = useState('')
+
+  // Passo 2 — Quem e Onde (mesclado no rodapé)
+  type Funcionario = { id: string; nome: string; email: string }
+  type Atribuicao = { id: string; nome: string; vistoriador_id: string | null; vistoriador_nome?: string }
+  const [funcionariosCad, setFuncionariosCad] = useState<Funcionario[]>([])
+  const [condominiosCad, setCondominiosCad] = useState<Atribuicao[]>([])
+  const [selFunc, setSelFunc] = useState<string>('')
+  const [selConds, setSelConds] = useState<Set<string>>(new Set())
+  const [carregandoQO, setCarregandoQO] = useState(true)
+  const [salvandoQO, setSalvandoQO] = useState(false)
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/funcionarios').then((r: any) => r as Funcionario[]),
+      api.get('/atribuicoes').then((r: any) => r as Atribuicao[]),
+    ]).then(([fs, cs]) => {
+      setFuncionariosCad(fs); setCondominiosCad(cs)
+    }).catch(() => { /* silencioso — passo 2 só aparece se houver dados */ })
+    .finally(() => setCarregandoQO(false))
+  }, [])
+
+  useEffect(() => {
+    if (!selFunc) { setSelConds(new Set()); return }
+    setSelConds(new Set(condominiosCad.filter((c) => c.vistoriador_id === selFunc).map((c) => c.id)))
+  }, [selFunc, condominiosCad])
+
+  const toggleCond = (id: string) => setSelConds((prev) => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    return next
+  })
+
+  const handleSalvarAtribuicao = async () => {
+    if (!selFunc) return toast.error('Selecione um funcionário')
+    if (selConds.size === 0) return toast.error('Marque pelo menos um condomínio')
+    setSalvandoQO(true)
+    try {
+      await api.post('/atribuicoes', { vistoriador_id: selFunc, condominio_ids: Array.from(selConds) })
+      toast.success(`${selConds.size} condomínio(s) atribuído(s)`)
+      navigate('/x-vistoria')
+    } catch (err: any) {
+      toast.error(err?.erro || 'Erro ao salvar')
+    } finally { setSalvandoQO(false) }
+  }
+
+  const passo2Habilitado = funcionariosCad.length > 1
 
   const sair = () => { logout(); navigate('/login') }
 
@@ -309,6 +355,112 @@ export default function CadastrosV2Page() {
             >
               {salvando ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar vistoria
             </button>
+          </div>
+
+          {/* Passo 2 — Quem e Onde (mesclado) */}
+          <div className="pt-8 border-t-2 border-gray-200">
+            <h2 className="text-2xl font-extrabold text-brand-navy">Quem e Onde</h2>
+            <p className="text-gray-500 mt-1 mb-6">Escolha o funcionário responsável e marque os condomínios sob a responsabilidade dele.</p>
+
+            {carregandoQO && (
+              <div className="flex justify-center py-8"><Loader2 size={28} className="animate-spin text-brand-navy" /></div>
+            )}
+
+            {!carregandoQO && !passo2Habilitado && (
+              <div className="card p-6 text-center border-2 border-amber-200 bg-amber-50 rounded-2xl">
+                <p className="text-sm text-amber-800 font-medium">
+                  Cadastre mais de um funcionário ou mais de um condomínio para habilitar esta etapa.
+                </p>
+              </div>
+            )}
+
+            {!carregandoQO && passo2Habilitado && (
+              <div className="space-y-6">
+                <section>
+                  <h3 className="text-base font-bold text-gray-800 mb-2">Funcionário responsável</h3>
+                  <p className="text-xs text-gray-500 mb-3">Marque um dos funcionários cadastrados.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {funcionariosCad.map((f) => {
+                      const ativo = selFunc === f.id
+                      return (
+                        <label
+                          key={f.id}
+                          className={clsx(
+                            'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer',
+                            ativo
+                              ? 'border-brand-green bg-emerald-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300',
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name="qo-funcionario"
+                            checked={ativo}
+                            onChange={() => setSelFunc(f.id)}
+                            className="h-5 w-5 border-gray-300 text-brand-green focus:ring-brand-green"
+                          />
+                          <User size={18} className="text-gray-400" />
+                          <span className="text-sm font-medium text-gray-800">{f.nome}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-base font-bold text-gray-800 mb-2">Condomínios sob responsabilidade</h3>
+                  <p className="text-xs text-gray-500 mb-3">
+                    {selFunc ? 'Marque os condomínios que este funcionário vai vistoriar.' : 'Escolha um funcionário acima para liberar a seleção.'}
+                  </p>
+                  {condominiosCad.length === 0 ? (
+                    <div className="card p-6 text-center text-sm text-gray-600">Nenhum condomínio cadastrado ainda.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {condominiosCad.map((c) => {
+                        const marcado = selConds.has(c.id)
+                        const outroDono = c.vistoriador_id && c.vistoriador_id !== selFunc
+                        return (
+                          <label
+                            key={c.id}
+                            className={clsx(
+                              'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all',
+                              !selFunc
+                                ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                                : marcado
+                                  ? 'border-brand-green bg-emerald-50 cursor-pointer'
+                                  : 'border-gray-200 bg-white hover:border-gray-300 cursor-pointer',
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={marcado}
+                              onChange={() => toggleCond(c.id)}
+                              disabled={!selFunc}
+                              className="h-5 w-5 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-gray-800 truncate">{c.nome}</div>
+                              {outroDono && (
+                                <div className="text-[11px] text-orange-600">Atualmente com: {c.vistoriador_nome}</div>
+                              )}
+                            </div>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <button
+                  type="button"
+                  onClick={handleSalvarAtribuicao}
+                  disabled={salvandoQO || !selFunc || selConds.size === 0}
+                  className="w-full py-4 rounded-2xl bg-brand-navy text-white text-base font-bold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                >
+                  {salvandoQO ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar atribuição
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
