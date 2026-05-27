@@ -38,7 +38,7 @@ export default function LoginPage() {
       await login(email, senha)
       if (lembrar) localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, senha }))
       else localStorage.removeItem(STORAGE_KEY)
-      navigate('/dashboard')
+      navigate('/x-vistoria')
     } catch (err: any) {
       let msg = ''
       if (!err) {

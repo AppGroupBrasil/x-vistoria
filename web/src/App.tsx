@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './store/auth'
 import ErrorBoundary from './components/ErrorBoundary'
-import NotFoundPage from './components/NotFoundPage'
 import { ConfirmProvider } from './components/ConfirmDialog'
 import LoginPage from './pages/LoginPage'
 
@@ -10,32 +9,12 @@ import LoginPage from './pages/LoginPage'
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const EsqueciSenhaPage = lazy(() => import('./pages/EsqueciSenhaPage'))
 const RedefinirSenhaPage = lazy(() => import('./pages/RedefinirSenhaPage'))
-const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
-const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
-const VisitasPage = lazy(() => import('./pages/admin/VisitasPage'))
-const VisitaDetailPage = lazy(() => import('./pages/admin/VisitaDetailPage'))
-const CondominiosPage = lazy(() => import('./pages/admin/CondominiosPage'))
-const UsuariosPage = lazy(() => import('./pages/admin/UsuariosPage'))
-const TimelinePage = lazy(() => import('./pages/admin/TimelinePage'))
-const TemplatesPage = lazy(() => import('./pages/admin/TemplatesPage'))
-const VisitaEditPage = lazy(() => import('./pages/admin/VisitaEditPage'))
-const EmpresasPage = lazy(() => import('./pages/admin/EmpresasPage'))
-const CategoriasPage = lazy(() => import('./pages/admin/CategoriasPage'))
-const RelatoriosPage = lazy(() => import('./pages/admin/RelatoriosPage'))
-const PendenciasPage = lazy(() => import('./pages/admin/PendenciasPage'))
-const ConfiguracoesPage = lazy(() => import('./pages/admin/ConfiguracoesPage'))
-const LocalizacaoPage = lazy(() => import('./pages/admin/LocalizacaoPage'))
-const VistoriaLivrePage = lazy(() => import('./pages/admin/VistoriaLivrePage'))
-const VistoriaLivreExecPage = lazy(() => import('./pages/admin/VistoriaLivreExecPage'))
-const ChecklistDashPage = lazy(() => import('./pages/admin/ChecklistDashPage'))
-const ChecklistExecPage = lazy(() => import('./pages/admin/ChecklistExecPage'))
 const ChecklistReportPage = lazy(() => import('./pages/ChecklistReportPage'))
 const SindicoPage = lazy(() => import('./pages/sindico/SindicoPage'))
 const QuestionarioPage = lazy(() => import('./pages/QuestionarioPage'))
 const PortalCondominioPage = lazy(() => import('./pages/PortalCondominioPage'))
 const PortalEspacoPage = lazy(() => import('./pages/PortalEspacoPage'))
 const PontoQrPage = lazy(() => import('./pages/PontoQrPage'))
-const AtividadesPage = lazy(() => import('./pages/admin/AtividadesPage'))
 const HomeV2Page = lazy(() => import('./pages/v2/HomeV2Page'))
 const CadastrosV2Page = lazy(() => import('./pages/v2/CadastrosV2Page'))
 const QuemOndeV2Page = lazy(() => import('./pages/v2/QuemOndeV2Page'))
@@ -161,38 +140,8 @@ export default function App() {
       {/* QR Code Ponto — registro de presença */}
       <Route path="/ponto/:token" element={<PontoQrPage />} />
 
-      {/* Admin panel — protegido */}
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <AdminLayout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="timeline" element={<TimelinePage />} />
-        <Route path="visitas" element={<VisitasPage />} />
-        <Route path="visitas/:id" element={<VisitaDetailPage />} />
-        <Route path="visitas/:id/editar" element={<VisitaEditPage />} />
-        <Route path="condominios" element={<CondominiosPage />} />
-        <Route path="usuarios" element={<UsuariosPage />} />
-        <Route path="vistoria" element={<TemplatesPage />} />
-        <Route path="empresas" element={<EmpresasPage />} />
-        <Route path="categorias" element={<CategoriasPage />} />
-        <Route path="pendencias" element={<PendenciasPage />} />
-        <Route path="relatorios" element={<RelatoriosPage />} />
-        <Route path="configuracoes" element={<ConfiguracoesPage />} />
-        <Route path="localizacao" element={<LocalizacaoPage />} />
-        <Route path="vistoria-livre" element={<VistoriaLivrePage />} />
-        <Route path="vistoria-livre/:id" element={<VistoriaLivreExecPage />} />
-        <Route path="checklist-avulso" element={<ChecklistDashPage />} />
-        <Route path="checklist-avulso/:id" element={<ChecklistExecPage />} />
-        <Route path="atividades" element={<AtividadesPage />} />
-      </Route>
-
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="/" element={<Navigate to="/x-vistoria" replace />} />
+      <Route path="*" element={<Navigate to="/x-vistoria" replace />} />
     </Routes>
     </Suspense>
     </ConfirmProvider>
