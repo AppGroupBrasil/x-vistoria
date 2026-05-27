@@ -41,7 +41,7 @@
     '</section>';
 
   var css =
-    '.agb-section{position:relative;z-index:1;isolation:isolate;clear:both;display:block;width:100%;box-sizing:border-box;background:#fff;padding:120px 0 140px;margin:160px 0 200px;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;overflow:hidden;font-family:Inter,system-ui,sans-serif}' +
+    '.agb-section{position:relative;z-index:1;clear:both;display:block;width:100%;box-sizing:border-box;background:#fff;padding:60px 0 80px;margin:0;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;overflow:hidden;font-family:Inter,system-ui,sans-serif}' +
     '.agb-section *{box-sizing:border-box}' +
     '.agb-hd{text-align:center;max-width:720px;margin:0 auto 32px;padding:0 5%}' +
     '.agb-label{display:inline-block;background:linear-gradient(135deg,rgba(0,214,143,.1),rgba(59,130,246,.1));color:#1A3A5C;border-radius:100px;padding:5px 16px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}' +
@@ -57,27 +57,52 @@
     '@keyframes agb-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}' +
     '@media (prefers-reduced-motion:reduce){.agb-track{animation:none}}';
 
+  function localizarAlvo() {
+    var manual = document.getElementById('apps-carousel-root');
+    if (manual) return { tipo: 'manual', el: manual };
+    var titulos = document.querySelectorAll('h1, h2, h3');
+    for (var i = 0; i < titulos.length; i++) {
+      var txt = (titulos[i].textContent || '').toLowerCase();
+      if (txt.indexOf('tudo') !== -1 && txt.indexOf('precisa') !== -1) {
+        var sec = titulos[i].closest('section, article, div');
+        return { tipo: 'antes', el: sec || titulos[i] };
+      }
+    }
+    return null;
+  }
+
   function injetar() {
-    if (document.getElementById('agb-apps-carousel-style')) return;
+    if (document.getElementById('agb-apps-carousel-style')) return false;
+    var alvo = localizarAlvo();
+    if (!alvo) return false;
     var style = document.createElement('style');
     style.id = 'agb-apps-carousel-style';
     style.textContent = css;
     document.head.appendChild(style);
-
-    var alvo = document.getElementById('apps-carousel-root');
     var wrapper = document.createElement('div');
     wrapper.innerHTML = html;
-    if (alvo) {
-      alvo.innerHTML = '';
-      alvo.appendChild(wrapper.firstChild);
+    var node = wrapper.firstChild;
+    if (alvo.tipo === 'manual') {
+      alvo.el.innerHTML = '';
+      alvo.el.appendChild(node);
     } else {
-      document.body.appendChild(wrapper.firstChild);
+      alvo.el.parentNode.insertBefore(node, alvo.el);
     }
+    return true;
+  }
+
+  function tentar() {
+    if (injetar()) return;
+    var tentativas = 0;
+    var t = setInterval(function () {
+      tentativas++;
+      if (injetar() || tentativas > 60) clearInterval(t);
+    }, 250);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injetar);
+    document.addEventListener('DOMContentLoaded', tentar);
   } else {
-    injetar();
+    tentar();
   }
 })();
