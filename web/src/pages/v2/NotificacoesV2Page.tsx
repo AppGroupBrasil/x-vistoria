@@ -156,6 +156,9 @@ export default function NotificacoesV2Page() {
 
   const moradorSelecionado = moradores.find((m) => m.id === notifMoradorId)
 
+  const [modalManual, setModalManual] = useState(false)
+  const [modalLote, setModalLote] = useState(false)
+
   const enviar = (canais: ('email' | 'whatsapp')[]) => {
     if (!moradorSelecionado) return toast.error('Selecione um morador')
     if (!notifTitulo.trim() || !notifDesc.trim()) return toast.error('Preencha título e descrição')
@@ -218,6 +221,7 @@ export default function NotificacoesV2Page() {
     persistir([{ id: uid(), ...form }, ...moradores])
     setForm({ condominio_id: form.condominio_id, condominio: form.condominio, bloco: form.bloco, apartamento: '', nome: '', telefone: '', email: '' })
     toast.success('Morador cadastrado')
+    setModalManual(false)
   }
 
   const excluir = (id: string) => persistir(moradores.filter((m) => m.id !== id))
@@ -233,6 +237,7 @@ export default function NotificacoesV2Page() {
       } else {
         toast.success(`${novos.length} morador(es) importado(s)`)
       }
+      setModalLote(false)
     } catch {
       toast.error('Erro ao ler o arquivo')
     }
@@ -537,9 +542,30 @@ export default function NotificacoesV2Page() {
             )}
           </section>
 
-          {/* Cadastro por lote */}
-          <section className="p-5 rounded-2xl border-2 border-gray-200 bg-white">
-            <h2 className="text-lg font-bold text-brand-navy">Cadastro por lote (planilha CSV)</h2>
+          {/* Botões de cadastro */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => setModalManual(true)}
+              className="px-4 py-3 rounded-xl bg-brand-green text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95"
+            >
+              <Plus size={16} /> Cadastrar morador (manual)
+            </button>
+            <button
+              onClick={() => setModalLote(true)}
+              className="px-4 py-3 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95"
+            >
+              <Upload size={16} /> Cadastrar moradores em lote
+            </button>
+          </div>
+
+          {/* Cadastro por lote (modal) */}
+          {modalLote && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setModalLote(false)}>
+          <section className="my-auto p-5 rounded-2xl bg-white w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-brand-navy">Cadastro por lote (planilha CSV)</h2>
+              <button onClick={() => setModalLote(false)} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Fechar"><X size={18} /></button>
+            </div>
             <p className="text-sm text-gray-600 mt-1">
               Importe vários moradores de uma vez a partir de um arquivo <strong>.csv</strong>.
             </p>
@@ -590,10 +616,17 @@ export default function NotificacoesV2Page() {
               </label>
             </div>
           </section>
+          </div>
+          )}
 
-          {/* Cadastro manual */}
-          <section className="p-5 rounded-2xl border-2 border-gray-200 bg-white">
-            <h2 className="text-lg font-bold text-brand-navy">Cadastro manual</h2>
+          {/* Cadastro manual (modal) */}
+          {modalManual && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setModalManual(false)}>
+          <section className="my-auto p-5 rounded-2xl bg-white w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-brand-navy">Cadastro manual</h2>
+              <button onClick={() => setModalManual(false)} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Fechar"><X size={18} /></button>
+            </div>
             <p className="text-sm text-gray-600 mt-1">Cadastre um morador por vez.</p>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -638,6 +671,8 @@ export default function NotificacoesV2Page() {
               <Plus size={16} /> Adicionar morador
             </button>
           </section>
+          </div>
+          )}
 
           {/* Lista */}
           <section>
