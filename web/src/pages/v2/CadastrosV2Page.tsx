@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
@@ -50,6 +50,20 @@ export default function CadastrosV2Page() {
   type Pergunta = { texto: string; itens: Record<string, boolean> }
   const novaPergunta = (): Pergunta => ({ texto: '', itens: {} })
   const [perguntas, setPerguntas] = useState<Pergunta[]>([novaPergunta()])
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('xv-import-personalizada')
+      if (raw) {
+        const importados = JSON.parse(raw) as Pergunta[]
+        if (Array.isArray(importados) && importados.length > 0) {
+          setPerguntas(importados.map((p) => ({ texto: p.texto, itens: p.itens || {} })))
+          localStorage.removeItem('xv-import-personalizada')
+          toast.success(`${importados.length} questão(ões) importadas da biblioteca`)
+        }
+      }
+    } catch { /* ignore */ }
+  }, [])
   const [salvarModelo, setSalvarModelo] = useState<'sim' | 'nao' | ''>('')
   const [nomeModelo, setNomeModelo] = useState('')
 

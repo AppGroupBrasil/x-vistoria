@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import toast from 'react-hot-toast'
@@ -75,6 +75,21 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
   const [salvando, setSalvando] = useState(false)
   const [iniciadaEm] = useState(() => new Date().toISOString())
   const sair = () => { logout(); navigate('/login') }
+
+  useEffect(() => {
+    try {
+      const key = `xv-import-${tipo}`
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        const importados = JSON.parse(raw)
+        if (Array.isArray(importados) && importados.length > 0) {
+          setItens(importados)
+          localStorage.removeItem(key)
+          toast.success(`${importados.length} item(ns) importados da biblioteca`)
+        }
+      }
+    } catch { /* ignore */ }
+  }, [tipo])
 
   const adicionar = () => {
     const base = { id: uid() }
