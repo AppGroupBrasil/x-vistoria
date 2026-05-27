@@ -4,6 +4,7 @@ import { useAuth } from './store/auth'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ConfirmProvider } from './components/ConfirmDialog'
 import WhatsAppFab from './components/WhatsAppFab'
+import BrandingApplier from './components/BrandingApplier'
 import LoginPage from './pages/LoginPage'
 
 // Lazy-loaded pages (code-splitting)
@@ -28,6 +29,7 @@ const SimplesDetailV2Page = lazy(() => import('./pages/v2/SimplesDetailV2Page'))
 const BibliotecaV2Page = lazy(() => import('./pages/v2/BibliotecaV2Page'))
 const NotificacoesV2Page = lazy(() => import('./pages/v2/NotificacoesV2Page'))
 const TimelineV2Page = lazy(() => import('./pages/v2/TimelineV2Page'))
+const AssinarPublicaPage = lazy(() => import('./pages/v2/AssinarPublicaPage'))
 const VisitaSimplesPublicaPage = lazy(() => import('./pages/v2/VisitaSimplesPublicaPage'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -39,6 +41,7 @@ function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
 export default function App() {
   return (
     <ErrorBoundary>
+    <BrandingApplier />
     <ConfirmProvider>
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
     <Routes>
@@ -136,6 +139,7 @@ export default function App() {
       {/* Página pública apontada pelo QR Code */}
       <Route path="/v/:id" element={<VisitaPublicaPage />} />
       <Route path="/v/simples/:id" element={<VisitaSimplesPublicaPage />} />
+      <Route path="/assinar/:token" element={<AssinarPublicaPage />} />
 
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />

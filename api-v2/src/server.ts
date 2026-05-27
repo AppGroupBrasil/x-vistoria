@@ -26,6 +26,8 @@ import moradoresRoutes from './routes/moradores.js'
 import blocosRoutes from './routes/blocos.js'
 import bibliotecaRoutes from './routes/biblioteca.js'
 import notificacoesRoutes from './routes/notificacoes.js'
+import empresaRoutes from './routes/empresa.js'
+import assinaturaRoutes from './routes/assinatura.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -59,6 +61,8 @@ await app.register(async (api) => {
   await api.register(blocosRoutes)
   await api.register(bibliotecaRoutes)
   await api.register(notificacoesRoutes)
+  await api.register(empresaRoutes)
+  await api.register(assinaturaRoutes)
 }, { prefix: '/api/v1' })
 
 const port = Number(process.env.PORT || 5100)

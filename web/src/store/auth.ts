@@ -9,6 +9,8 @@ interface User {
   role: 'master' | 'admin' | 'supervisor' | 'sindico' | 'vistoriador'
   empresa_id: string
   empresa_nome: string
+  empresa_logo?: string | null
+  empresa_cor?: string | null
   avatar_url?: string
   permissoes?: string[]
 }

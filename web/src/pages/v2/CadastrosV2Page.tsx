@@ -91,6 +91,40 @@ export default function CadastrosV2Page() {
     }
   }
 
+  // ---- Branding (apenas admin/master) ----
+  const ehAdminMaster = user?.role === 'admin' || user?.role === 'master'
+  const [brandLogo, setBrandLogo] = useState<string>('')
+  const [brandCor, setBrandCor] = useState<string>('#00D68F')
+  const [salvandoBrand, setSalvandoBrand] = useState(false)
+  useEffect(() => {
+    if (!ehAdminMaster) return
+    api.get('/empresa').then((r: any) => {
+      setBrandLogo(r?.logo_url || '')
+      setBrandCor(r?.cor_primaria || '#00D68F')
+    }).catch(() => {})
+  }, [ehAdminMaster])
+
+  const salvarBranding = async () => {
+    setSalvandoBrand(true)
+    try {
+      await api.patch('/empresa', { logo_url: brandLogo || null, cor_primaria: brandCor || null })
+      toast.success('Identidade visual salva')
+      if (brandCor && /^#[0-9a-fA-F]{6}$/.test(brandCor)) {
+        document.documentElement.style.setProperty('--brand-green', brandCor)
+      }
+    } catch (e: any) { toast.error(e?.erro || 'Erro ao salvar') }
+    finally { setSalvandoBrand(false) }
+  }
+
+  const uploadLogo = async (file: File) => {
+    try {
+      const fd = new FormData()
+      fd.append('file', file, file.name)
+      const r: any = await api.post('/upload/avulso', fd)
+      setBrandLogo(r.url)
+    } catch (e: any) { toast.error(e?.erro || 'Falha no upload') }
+  }
+
   // ---- Cadastro de Perfil (apenas admin/master/sindico) ----
   const podeCadastrarPerfil = user?.role === 'admin' || user?.role === 'master' || user?.role === 'sindico'
   const rolesPermitidos: { value: string; label: string }[] = (() => {
@@ -194,6 +228,37 @@ export default function CadastrosV2Page() {
             <h1 className="text-3xl font-extrabold text-brand-navy">Cadastros</h1>
             <p className="text-gray-500 mt-1">Preencha os dados básicos da vistoria.</p>
           </div>
+
+          {/* Identidade visual (admin/master) */}
+          {ehAdminMaster && (
+            <section className="p-5 rounded-2xl bg-white border-2 border-gray-200">
+              <h2 className="text-lg font-extrabold text-brand-navy mb-1">Identidade visual</h2>
+              <p className="text-sm text-gray-600 mb-4">Sua logo e cor de destaque aparecem em todo o sistema e nos links públicos dos relatórios.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="brand-logo" className="block text-xs font-bold text-gray-700 mb-1">Logo</label>
+                  <div className="flex items-center gap-3">
+                    {brandLogo && <img src={brandLogo} alt="" className="w-14 h-14 rounded-lg object-contain bg-gray-50 border border-gray-200" />}
+                    <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 border-2 border-dashed border-gray-300 cursor-pointer text-sm text-gray-700">
+                      Escolher imagem
+                      <input id="brand-logo" type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadLogo(f) }} />
+                    </label>
+                    {brandLogo && <button onClick={() => setBrandLogo('')} className="text-xs text-red-600 hover:underline">Remover</button>}
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="brand-cor" className="block text-xs font-bold text-gray-700 mb-1">Cor de destaque</label>
+                  <div className="flex items-center gap-2">
+                    <input id="brand-cor" type="color" value={brandCor} onChange={(e) => setBrandCor(e.target.value)} className="w-12 h-10 rounded border border-gray-300 cursor-pointer" />
+                    <input type="text" value={brandCor} onChange={(e) => setBrandCor(e.target.value)} className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none font-mono" placeholder="#00D68F" />
+                  </div>
+                </div>
+              </div>
+              <button onClick={salvarBranding} disabled={salvandoBrand} className="mt-4 px-4 py-2.5 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center gap-2 active:scale-95 disabled:opacity-50">
+                {salvandoBrand ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Salvar identidade
+              </button>
+            </section>
+          )}
 
           {/* Cadastro de Perfil — apenas admin/master/sindico */}
           {podeCadastrarPerfil && (

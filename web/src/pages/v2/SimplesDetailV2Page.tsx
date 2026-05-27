@@ -4,7 +4,8 @@ import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, LogOut, Loader2, Printer, MapPin, Clock, CheckCircle, User, Star } from 'lucide-react'
+import { ArrowLeft, LogOut, Loader2, Printer, MapPin, Clock, CheckCircle, User, Star, FileSignature } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 const TIPO_LABEL: Record<string, string> = {
   foto_descricao: 'Foto e descrição',
@@ -67,6 +68,17 @@ export default function SimplesDetailV2Page() {
           <div className="font-bold text-base">X <span className="text-brand-green">Vistoria</span></div>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={async () => {
+            try {
+              const r: any = await api.post(`/vistoria-simples/${id}/preparar-assinatura`, {})
+              const url = `${window.location.origin}/assinar/${r.token}`
+              await navigator.clipboard.writeText(url).catch(() => {})
+              toast.success('Link de assinatura copiado para a área de transferência')
+              window.open(`https://wa.me/?text=${encodeURIComponent(`Para assinar a vistoria, acesse: ${url}`)}`, '_blank')
+            } catch (e: any) { toast.error(e?.erro || 'Erro ao gerar link') }
+          }} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 no-print">
+            <FileSignature size={16} /> Solicitar assinatura
+          </button>
           <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-brand-green hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95">
             <Printer size={16} /> Imprimir / PDF
           </button>

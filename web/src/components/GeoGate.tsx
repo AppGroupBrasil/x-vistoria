@@ -3,23 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import { MapPin, Loader2 } from 'lucide-react'
 import { obterLocalizacao } from '../lib/geo'
 
-type Status = 'consentimento' | 'pendente' | 'autorizado' | 'negado'
+type Status = 'consentimento' | 'pendente' | 'autorizado' | 'negado' | 'longe'
 
 interface Props {
   children: (geo: { lat: number; lng: number }) => ReactNode
   voltarPara?: string
+  esperado?: { lat: number; lng: number; nome?: string } | null
+  raioMetros?: number
 }
 
-export default function GeoGate({ children, voltarPara = '/x-vistoria' }: Props) {
+function distancia(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371000
+  const toRad = (x: number) => (x * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+export default function GeoGate({ children, voltarPara = '/x-vistoria', esperado, raioMetros = 500 }: Props) {
   const navigate = useNavigate()
   const [status, setStatus] = useState<Status>('consentimento')
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null)
+  const [distM, setDistM] = useState<number>(0)
 
   const autorizar = async () => {
     setStatus('pendente')
     const g = await obterLocalizacao()
-    if (g) { setGeo(g); setStatus('autorizado') }
-    else setStatus('negado')
+    if (!g) { setStatus('negado'); return }
+    if (esperado) {
+      const d = distancia(g, esperado)
+      if (d > raioMetros) { setGeo(g); setDistM(d); setStatus('longe'); return }
+    }
+    setGeo(g); setStatus('autorizado')
   }
   const negar = () => setStatus('negado')
 
@@ -59,6 +77,24 @@ export default function GeoGate({ children, voltarPara = '/x-vistoria' }: Props)
           <h1 className="text-xl font-bold mb-2">Aguardando localização…</h1>
           <p className="text-white/70 text-sm mb-6">Confirme no aviso do navegador.</p>
           <Loader2 size={28} className="animate-spin text-white/70" />
+        </>
+      )}
+
+      {status === 'longe' && (
+        <>
+          <h1 className="text-xl font-bold mb-3 text-amber-300">Você está longe do condomínio</h1>
+          <p className="text-white/80 text-sm mb-6 max-w-sm leading-relaxed">
+            Você está a <strong>{(distM / 1000).toFixed(2)} km</strong> de {esperado?.nome || 'do local cadastrado'}.
+            O sistema só permite iniciar vistorias a até {raioMetros} metros do endereço cadastrado.
+          </p>
+          <div className="flex flex-col w-full max-w-xs gap-2">
+            <button onClick={autorizar} className="bg-brand-green hover:bg-emerald-600 text-white py-3 rounded-xl font-bold active:scale-95">
+              Tentar novamente
+            </button>
+            <button onClick={() => navigate(voltarPara)} className="bg-white/10 hover:bg-white/15 text-white/80 py-3 rounded-xl font-semibold active:scale-95">
+              Voltar
+            </button>
+          </div>
         </>
       )}
 

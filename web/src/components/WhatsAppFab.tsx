@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom'
 const NUMERO = '5511933284364'
 const HREF = `https://wa.me/${NUMERO}?text=${encodeURIComponent('Olá! Preciso de ajuda com o X Vistoria.')}`
 
-const ROTAS_OCULTAS = ['/login', '/register', '/esqueci-senha', '/redefinir-senha', '/v/', '/sindico/', '/questionario/', '/checklist-report/', '/portal/', '/ponto/']
+const ROTAS_OCULTAS = ['/login', '/register', '/esqueci-senha', '/redefinir-senha', '/v/', '/sindico/', '/questionario/', '/checklist-report/', '/portal/', '/ponto/', '/assinar/']
 
 export default function WhatsAppFab() {
   const { pathname } = useLocation()

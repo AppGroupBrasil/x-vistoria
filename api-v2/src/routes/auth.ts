@@ -41,6 +41,8 @@ export default async function authRoutes(app: FastifyInstance) {
         role: user.role,
         empresa_id: user.empresaId,
         empresa_nome: user.empresa.nome,
+        empresa_logo: user.empresa.logoUrl,
+        empresa_cor: user.empresa.corPrimaria,
         permissoes: user.permissoes || [],
       },
     }
@@ -82,6 +84,7 @@ export default async function authRoutes(app: FastifyInstance) {
     return {
       id: u.id, nome: u.nome, email: u.email, role: u.role,
       empresa_id: u.empresaId, empresa_nome: u.empresa.nome,
+      empresa_logo: u.empresa.logoUrl, empresa_cor: u.empresa.corPrimaria,
       permissoes: u.permissoes || [],
     }
   })

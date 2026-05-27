@@ -9,6 +9,8 @@ const condSchema = z.object({
   uf: z.string().length(2).optional(),
   sindico: z.string().optional(),
   sindico_email: z.string().email().optional().or(z.literal('')),
+  lat_ref: z.number().nullable().optional(),
+  lng_ref: z.number().nullable().optional(),
 })
 
 export default async function condominiosRoutes(app: FastifyInstance) {
@@ -34,6 +36,8 @@ export default async function condominiosRoutes(app: FastifyInstance) {
         uf: d.uf,
         sindico: d.sindico,
         sindicoEmail: d.sindico_email || null,
+        latRef: d.lat_ref ?? null,
+        lngRef: d.lng_ref ?? null,
       },
     })
     return reply.code(201).send(c)
@@ -55,6 +59,8 @@ export default async function condominiosRoutes(app: FastifyInstance) {
         uf: d.uf,
         sindico: d.sindico,
         sindicoEmail: d.sindico_email || null,
+        latRef: d.lat_ref,
+        lngRef: d.lng_ref,
       },
     })
     return atualizado

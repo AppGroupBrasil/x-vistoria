@@ -68,6 +68,8 @@ model Empresa {
   id           String       @id @default(uuid())
   nome         String
   cnpj         String?      @unique
+  logoUrl      String?      @map("logo_url")
+  corPrimaria  String?      @map("cor_primaria")
   criadoEm     DateTime     @default(now()) @map("criado_em")
   usuarios     Usuario[]
   condominios  Condominio[]
@@ -114,6 +116,8 @@ model Condominio {
   endereco  String?
   cidade    String?
   uf        String?
+  latRef    Float? @map("lat_ref")
+  lngRef    Float? @map("lng_ref")
   sindico   String?
   sindicoEmail String? @map("sindico_email")
   vistoriadorPadraoId String? @map("vistoriador_padrao_id")
@@ -376,6 +380,10 @@ model VistoriaSimples {
   lngInicio     Float?   @map("lng_inicio")
   latFim        Float?   @map("lat_fim")
   lngFim        Float?   @map("lng_fim")
+  assinSindicoNome  String?   @map("assin_sindico_nome")
+  assinSindicoEm    DateTime? @map("assin_sindico_em")
+  assinSindicoToken String?   @unique @map("assin_sindico_token")
+  assinSindicoHash  String?   @map("assin_sindico_hash")
   criadoEm      DateTime @default(now()) @map("criado_em")
 
   @@index([empresaId])
