@@ -32,9 +32,14 @@ const TimelineV2Page = lazy(() => import('./pages/v2/TimelineV2Page'))
 const AssinarPublicaPage = lazy(() => import('./pages/v2/AssinarPublicaPage'))
 const VisitaSimplesPublicaPage = lazy(() => import('./pages/v2/VisitaSimplesPublicaPage'))
 
-function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
+const ROLES_VEM_TUDO = new Set(['master', 'admin', 'sindico'])
+
+function RequireAuth({ children, permissao }: Readonly<{ children: React.ReactNode; permissao?: string }>) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
+  if (permissao && !ROLES_VEM_TUDO.has(user.role || '') && !(user.permissoes || []).includes(permissao)) {
+    return <Navigate to="/x-vistoria" replace />
+  }
   return <>{children}</>
 }
 
@@ -59,7 +64,7 @@ export default function App() {
       <Route
         path="/x-vistoria/cadastros"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="cadastros">
             <CadastrosV2Page />
           </RequireAuth>
         }
@@ -75,7 +80,7 @@ export default function App() {
       <Route
         path="/x-vistoria/simples"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="vistoria">
             <SimplesV2Page />
           </RequireAuth>
         }
@@ -83,7 +88,7 @@ export default function App() {
       <Route
         path="/x-vistoria/simples/:tipo"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="vistoria">
             <SimplesExecV2Page />
           </RequireAuth>
         }
@@ -91,7 +96,7 @@ export default function App() {
       <Route
         path="/x-vistoria/historico"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="historico">
             <HistoricoV2Page />
           </RequireAuth>
         }
@@ -99,7 +104,7 @@ export default function App() {
       <Route
         path="/x-vistoria/historico/:id"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="historico">
             <HistoricoDetailV2Page />
           </RequireAuth>
         }
@@ -107,7 +112,7 @@ export default function App() {
       <Route
         path="/x-vistoria/historico/simples/:id"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="historico">
             <SimplesDetailV2Page />
           </RequireAuth>
         }
@@ -123,7 +128,7 @@ export default function App() {
       <Route
         path="/x-vistoria/notificacoes"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="notificacoes">
             <NotificacoesV2Page />
           </RequireAuth>
         }
@@ -131,7 +136,7 @@ export default function App() {
       <Route
         path="/x-vistoria/timeline"
         element={
-          <RequireAuth>
+          <RequireAuth permissao="timeline">
             <TimelineV2Page />
           </RequireAuth>
         }
