@@ -44,6 +44,7 @@ const SimplesExecV2Page = lazy(() => import('./pages/v2/SimplesExecV2Page'))
 const HistoricoV2Page = lazy(() => import('./pages/v2/HistoricoV2Page'))
 const HistoricoDetailV2Page = lazy(() => import('./pages/v2/HistoricoDetailV2Page'))
 const VisitaPublicaPage = lazy(() => import('./pages/v2/VisitaPublicaPage'))
+const SimplesDetailV2Page = lazy(() => import('./pages/v2/SimplesDetailV2Page'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -113,6 +114,14 @@ export default function App() {
         element={
           <RequireAuth>
             <HistoricoDetailV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/historico/simples/:id"
+        element={
+          <RequireAuth>
+            <SimplesDetailV2Page />
           </RequireAuth>
         }
       />

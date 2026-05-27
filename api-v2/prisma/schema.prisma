@@ -75,6 +75,7 @@ model Empresa {
   categorias   Categoria[]
   perguntas    Pergunta[]
   visitas      Visita[]
+  vistoriasSimples VistoriaSimples[]
 
   @@map("empresas")
 }
@@ -89,6 +90,7 @@ model Usuario {
   role        Role     @default(vistoriador)
   ativo       Boolean  @default(true)
   criadoEm    DateTime @default(now()) @map("criado_em")
+  vistoriasSimples  VistoriaSimples[]
   visitasAtribuidas Visita[] @relation("VisitaVistoriador")
   visitasCriadas    Visita[] @relation("VisitaCriador")
   condominiosResponsavel Condominio[] @relation("CondominioVistoriadorPadrao")
@@ -270,6 +272,37 @@ model Pendencia {
 
   @@index([visitaId])
   @@map("pendencias")
+}
+
+enum TipoVistoriaSimples {
+  foto_descricao
+  checklist
+  pergunta_resposta
+  conformidade
+  antes_depois
+  avaliacao
+}
+
+model VistoriaSimples {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  vistoriadorId String   @map("vistoriador_id")
+  vistoriador   Usuario  @relation(fields: [vistoriadorId], references: [id], onDelete: Cascade)
+  tipo          TipoVistoriaSimples
+  protocolo     String   @unique
+  itens         Json
+  iniciadaEm    DateTime @map("iniciada_em")
+  finalizadaEm  DateTime @map("finalizada_em")
+  latInicio     Float?   @map("lat_inicio")
+  lngInicio     Float?   @map("lng_inicio")
+  latFim        Float?   @map("lat_fim")
+  lngFim        Float?   @map("lng_fim")
+  criadoEm      DateTime @default(now()) @map("criado_em")
+
+  @@index([empresaId])
+  @@index([vistoriadorId])
+  @@map("vistorias_simples")
 }
 
 model Mensagem {

@@ -24,6 +24,8 @@ const STATUS_COR: Record<string, string> = {
 
 interface ItemHist {
   id: string; protocolo: string; status: string
+  categoria?: 'template' | 'simples'
+  tipo_label?: string
   condominio_nome: string; condominio_endereco?: string
   vistoriador_nome: string; template_nome?: string
   criado_em: string; iniciada_em?: string; finalizada_em?: string
@@ -89,8 +91,12 @@ export default function HistoricoV2Page() {
           <div className="space-y-2">
             {itens.map((it) => (
               <button
-                key={it.id}
-                onClick={() => navigate(`/x-vistoria/historico/${it.id}`)}
+                key={`${it.categoria ?? 'template'}-${it.id}`}
+                onClick={() => navigate(
+                  it.categoria === 'simples'
+                    ? `/x-vistoria/historico/simples/${it.id}`
+                    : `/x-vistoria/historico/${it.id}`,
+                )}
                 className="w-full text-left card p-4 hover:shadow-md active:scale-[0.99] transition-all"
               >
                 <div className="flex items-start gap-3">
@@ -100,6 +106,11 @@ export default function HistoricoV2Page() {
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_COR[it.status] || 'bg-gray-100'}`}>
                         {STATUS_LABEL[it.status] || it.status}
                       </span>
+                      {it.categoria === 'simples' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                          Vistoria simples
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 truncate">
                       <MapPin size={11} /> {it.condominio_endereco || '—'}

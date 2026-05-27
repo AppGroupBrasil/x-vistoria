@@ -24,17 +24,59 @@ function formatar(v: any, fallbackNome: string) {
 export default async function historicoRoutes(app: FastifyInstance) {
   app.get('/historico', { preHandler: [app.autenticar] }, async (req) => {
     const me = await prisma.usuario.findUnique({ where: { id: req.usuario.id } })
-    const vs = await prisma.visita.findMany({
-      where: { empresaId: req.usuario.empresaId },
-      include: {
-        condominio: true,
-        vistoriador: true,
-        template: { include: { _count: { select: { perguntas: true } } } },
-        respostas: { select: { id: true } },
-      },
-      orderBy: { criadoEm: 'desc' },
-    })
-    return vs.map((v) => formatar(v, me?.nome ?? 'Sem nome'))
+    const [vs, ss] = await Promise.all([
+      prisma.visita.findMany({
+        where: { empresaId: req.usuario.empresaId },
+        include: {
+          condominio: true,
+          vistoriador: true,
+          template: { include: { _count: { select: { perguntas: true } } } },
+          respostas: { select: { id: true } },
+        },
+        orderBy: { criadoEm: 'desc' },
+      }),
+      prisma.vistoriaSimples.findMany({
+        where: { empresaId: req.usuario.empresaId },
+        include: { vistoriador: true },
+        orderBy: { criadoEm: 'desc' },
+      }),
+    ])
+
+    const fallback = me?.nome ?? 'Sem nome'
+    const tipoLabel: Record<string, string> = {
+      foto_descricao: 'Foto e descrição',
+      checklist: 'Checklist',
+      pergunta_resposta: 'Pergunta e Resposta',
+      conformidade: 'Conformidade',
+      antes_depois: 'Antes e Depois',
+      avaliacao: 'Avaliação',
+    }
+
+    const lista = [
+      ...vs.map((v) => ({ ...formatar(v, fallback), categoria: 'template' as const })),
+      ...ss.map((s) => ({
+        id: s.id,
+        categoria: 'simples' as const,
+        tipo: s.tipo,
+        tipo_label: tipoLabel[s.tipo] || s.tipo,
+        protocolo: s.protocolo,
+        status: 'concluida',
+        condominio_nome: tipoLabel[s.tipo] || 'Vistoria simples',
+        condominio_endereco: null,
+        vistoriador_nome: s.vistoriador?.nome ?? fallback,
+        template_nome: null,
+        observacoes: null,
+        criado_em: s.criadoEm,
+        iniciada_em: s.iniciadaEm,
+        finalizada_em: s.finalizadaEm,
+        lat_inicio: s.latInicio, lng_inicio: s.lngInicio,
+        lat_fim: s.latFim, lng_fim: s.lngFim,
+        total_perguntas: Array.isArray(s.itens) ? s.itens.length : 0,
+        total_respondidas: Array.isArray(s.itens) ? s.itens.length : 0,
+      })),
+    ].sort((a, b) => +new Date(b.criado_em) - +new Date(a.criado_em))
+
+    return lista
   })
 
   app.get('/historico/:id', { preHandler: [app.autenticar] }, async (req, reply) => {

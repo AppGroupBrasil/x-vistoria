@@ -9,6 +9,17 @@ import {
 import clsx from 'clsx'
 import { TIPOS } from './SimplesV2Page'
 import GeoGate from '../../components/GeoGate'
+import { api } from '../../api/client'
+import { obterLocalizacao } from '../../lib/geo'
+
+const TIPO_API: Record<string, string> = {
+  'foto-descricao': 'foto_descricao',
+  'checklist': 'checklist',
+  'pergunta-resposta': 'pergunta_resposta',
+  'conformidade': 'conformidade',
+  'antes-depois': 'antes_depois',
+  'avaliacao': 'avaliacao',
+}
 
 type Foto = { id: string; url: string; nome: string }
 
@@ -62,6 +73,7 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
   const navigate = useNavigate()
   const [itens, setItens] = useState<any[]>([])
   const [salvando, setSalvando] = useState(false)
+  const [iniciadaEm] = useState(() => new Date().toISOString())
   const sair = () => { logout(); navigate('/login') }
 
   const adicionar = () => {
@@ -87,12 +99,24 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
     if (itens.length === 0) return toast.error('Adicione pelo menos um item')
     setSalvando(true)
     try {
-      // Captura a localização também ao enviar (fim)
-      // TODO: salvar no backend usando geoInicio + geoFim + itens
-      console.log('geo início:', geoInicio)
-      await new Promise((r) => setTimeout(r, 500))
-      toast.success('Vistoria enviada!')
-      navigate('/x-vistoria')
+      const geoFim = await obterLocalizacao()
+      if (!geoFim) {
+        toast.error('Localização obrigatória para enviar. Autorize e tente de novo.')
+        return
+      }
+      const payload = {
+        tipo: TIPO_API[tipo] || tipo,
+        itens,
+        iniciada_em: iniciadaEm,
+        finalizada_em: new Date().toISOString(),
+        lat_inicio: geoInicio.lat, lng_inicio: geoInicio.lng,
+        lat_fim: geoFim.lat, lng_fim: geoFim.lng,
+      }
+      const res: any = await api.post('/vistoria-simples', payload)
+      toast.success(`Vistoria enviada! Protocolo #${res.protocolo}`)
+      navigate('/x-vistoria/historico')
+    } catch (err: any) {
+      toast.error(err?.erro || 'Erro ao enviar vistoria')
     } finally { setSalvando(false) }
   }
 
