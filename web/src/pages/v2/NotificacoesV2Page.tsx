@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X } from 'lucide-react'
+import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X, Users } from 'lucide-react'
 import MicDictar from '../../components/MicDictar'
 
 type CondominioCad = { id: string; nome: string }
@@ -310,6 +310,33 @@ export default function NotificacoesV2Page() {
             </div>
           </div>
 
+          {/* Cadastro dos Moradores — destaque no topo */}
+          <section className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-brand-green shadow-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-brand-green text-white flex items-center justify-center flex-shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-extrabold text-brand-navy">Cadastro dos Moradores</h2>
+                <p className="text-sm text-gray-700">Cadastre os moradores aqui para conseguir enviar notificações pra eles.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => setModalManual(true)}
+                className="px-4 py-3 rounded-xl bg-brand-green text-white text-sm font-bold inline-flex items-center justify-center gap-2 shadow-md shadow-emerald-500/30 active:scale-95"
+              >
+                <Plus size={16} /> Cadastrar morador (manual)
+              </button>
+              <button
+                onClick={() => setModalLote(true)}
+                className="px-4 py-3 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center justify-center gap-2 shadow-md active:scale-95"
+              >
+                <Upload size={16} /> Cadastrar moradores em lote
+              </button>
+            </div>
+          </section>
+
           {/* Composer de notificação */}
           <section className="p-5 rounded-2xl border-2 border-brand-navy bg-white">
             <h2 className="text-lg font-bold text-brand-navy">Enviar notificação</h2>
@@ -586,22 +613,6 @@ export default function NotificacoesV2Page() {
               </div>
             )}
           </section>
-
-          {/* Botões de cadastro */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              onClick={() => setModalManual(true)}
-              className="px-4 py-3 rounded-xl bg-brand-green text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95"
-            >
-              <Plus size={16} /> Cadastrar morador (manual)
-            </button>
-            <button
-              onClick={() => setModalLote(true)}
-              className="px-4 py-3 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center justify-center gap-2 active:scale-95"
-            >
-              <Upload size={16} /> Cadastrar moradores em lote
-            </button>
-          </div>
 
           {/* Cadastro por lote (modal) */}
           {modalLote && (
