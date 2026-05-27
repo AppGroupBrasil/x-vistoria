@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
+import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download } from 'lucide-react'
+import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle } from 'lucide-react'
+
+type CondominioCad = { id: string; nome: string }
 
 type Morador = {
   id: string
+  condominio_id: string | null
   condominio: string
   bloco: string
   apartamento: string
@@ -22,18 +26,27 @@ const carregar = (): Morador[] => {
 
 const COLUNAS = ['condominio', 'bloco', 'apartamento', 'nome', 'telefone', 'email'] as const
 
-function parseCsv(texto: string): Morador[] {
+function parseCsv(texto: string, condominios: CondominioCad[]): { moradores: Morador[]; semVinculo: number } {
   const linhas = texto.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
-  if (linhas.length === 0) return []
-  // detecta cabeçalho (se a primeira linha tiver as colunas)
+  if (linhas.length === 0) return { moradores: [], semVinculo: 0 }
   const primeira = linhas[0].toLowerCase()
   const temCabecalho = COLUNAS.every((c) => primeira.includes(c))
   const dados = temCabecalho ? linhas.slice(1) : linhas
-  return dados.map((l) => {
+  const indice = new Map(condominios.map((c) => [c.nome.toLowerCase().trim(), c]))
+  let semVinculo = 0
+  const moradores = dados.map((l) => {
     const partes = l.split(/[,;\t]/).map((p) => p.trim())
     const [condominio = '', bloco = '', apartamento = '', nome = '', telefone = '', email = ''] = partes
-    return { id: uid(), condominio, bloco, apartamento, nome, telefone, email }
+    const cad = indice.get(condominio.toLowerCase())
+    if (!cad && condominio) semVinculo++
+    return {
+      id: uid(),
+      condominio_id: cad?.id || null,
+      condominio: cad?.nome || condominio,
+      bloco, apartamento, nome, telefone, email,
+    }
   }).filter((m) => m.nome || m.apartamento)
+  return { moradores, semVinculo }
 }
 
 export default function NotificacoesV2Page() {
@@ -42,23 +55,34 @@ export default function NotificacoesV2Page() {
   const sair = () => { logout(); navigate('/login') }
 
   const [moradores, setMoradores] = useState<Morador[]>(carregar)
+  const [condominios, setCondominios] = useState<CondominioCad[]>([])
   const persistir = (lista: Morador[]) => {
     setMoradores(lista)
     localStorage.setItem(STORAGE, JSON.stringify(lista))
   }
-  useEffect(() => { /* hidrata na primeira render */ }, [])
+  useEffect(() => {
+    api.get('/atribuicoes')
+      .then((r: any) => setCondominios((r as CondominioCad[]).map((c) => ({ id: c.id, nome: c.nome }))))
+      .catch(() => { /* silencioso */ })
+  }, [])
 
   const [form, setForm] = useState<Omit<Morador, 'id'>>({
-    condominio: '', bloco: '', apartamento: '', nome: '', telefone: '', email: '',
+    condominio_id: null, condominio: '', bloco: '', apartamento: '', nome: '', telefone: '', email: '',
   })
-  const setCampo = (k: keyof Omit<Morador, 'id'>, v: string) => setForm((p) => ({ ...p, [k]: v }))
+  const setCampo = (k: keyof Omit<Morador, 'id'>, v: string | null) =>
+    setForm((p) => ({ ...p, [k]: v as any }))
+
+  const selecionarCondominio = (id: string) => {
+    const cad = condominios.find((c) => c.id === id)
+    setForm((p) => ({ ...p, condominio_id: cad?.id || null, condominio: cad?.nome || '' }))
+  }
 
   const adicionarManual = () => {
-    if (!form.nome.trim() || !form.apartamento.trim() || !form.condominio.trim()) {
-      return toast.error('Preencha ao menos condomínio, apartamento e nome')
+    if (!form.nome.trim() || !form.apartamento.trim() || !form.condominio_id) {
+      return toast.error('Selecione o condomínio e preencha apartamento e nome')
     }
     persistir([{ id: uid(), ...form }, ...moradores])
-    setForm({ condominio: form.condominio, bloco: form.bloco, apartamento: '', nome: '', telefone: '', email: '' })
+    setForm({ condominio_id: form.condominio_id, condominio: form.condominio, bloco: form.bloco, apartamento: '', nome: '', telefone: '', email: '' })
     toast.success('Morador cadastrado')
   }
 
@@ -67,10 +91,14 @@ export default function NotificacoesV2Page() {
   const importarLote = async (file: File) => {
     try {
       const texto = await file.text()
-      const novos = parseCsv(texto)
+      const { moradores: novos, semVinculo } = parseCsv(texto, condominios)
       if (novos.length === 0) return toast.error('Nenhuma linha válida encontrada')
       persistir([...novos, ...moradores])
-      toast.success(`${novos.length} morador(es) importado(s)`)
+      if (semVinculo > 0) {
+        toast(`${novos.length} importado(s). ${semVinculo} sem vínculo com condomínio cadastrado.`, { icon: '⚠️' })
+      } else {
+        toast.success(`${novos.length} morador(es) importado(s)`)
+      }
     } catch {
       toast.error('Erro ao ler o arquivo')
     }
@@ -127,6 +155,27 @@ export default function NotificacoesV2Page() {
             </div>
           </div>
 
+          {/* Vínculo unificado */}
+          <div className="p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 flex items-start gap-3">
+            <AlertTriangle size={20} className="text-emerald-700 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-emerald-900">
+              <p className="font-bold">Cadastro unificado de condomínio</p>
+              <p className="mt-1">
+                O condomínio do morador é o <strong>mesmo</strong> cadastrado no Passo 1 da vistoria. Para cadastrar
+                um morador, o condomínio precisa existir antes lá. Isso evita duplicidade e mantém os relatórios
+                ligados a um único registro.
+              </p>
+              {condominios.length === 0 && (
+                <button
+                  onClick={() => navigate('/x-vistoria/cadastros')}
+                  className="mt-2 inline-flex items-center gap-2 text-emerald-800 font-bold hover:underline"
+                >
+                  Ir para Cadastros e criar o primeiro condomínio →
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Cadastro por lote */}
           <section className="p-5 rounded-2xl border-2 border-gray-200 bg-white">
             <h2 className="text-lg font-bold text-brand-navy">Cadastro por lote (planilha CSV)</h2>
@@ -151,6 +200,10 @@ export default function NotificacoesV2Page() {
               <p className="text-xs text-amber-700 mt-1">
                 Exemplo de linha:
                 <span className="ml-1 font-mono bg-white px-1 rounded">Edifício Jardim,A,101,Maria Silva,11987654321,maria@email.com</span>
+              </p>
+              <p className="text-xs text-amber-700 mt-2">
+                <strong>Importante:</strong> o nome do condomínio precisa ser idêntico ao cadastrado no Passo 1.
+                Linhas com condomínio não cadastrado serão importadas, mas ficarão sem vínculo.
               </p>
             </div>
 
@@ -183,8 +236,16 @@ export default function NotificacoesV2Page() {
             <p className="text-sm text-gray-600 mt-1">Cadastre um morador por vez.</p>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
-                placeholder="Condomínio" value={form.condominio} onChange={(e) => setCampo('condominio', e.target.value)} />
+              <select
+                className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                value={form.condominio_id || ''}
+                onChange={(e) => selecionarCondominio(e.target.value)}
+              >
+                <option value="">{condominios.length === 0 ? 'Nenhum condomínio cadastrado' : 'Selecione o condomínio'}</option>
+                {condominios.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome}</option>
+                ))}
+              </select>
               <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
                 placeholder="Bloco" value={form.bloco} onChange={(e) => setCampo('bloco', e.target.value)} />
               <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
@@ -217,11 +278,12 @@ export default function NotificacoesV2Page() {
             ) : (
               <div className="space-y-2">
                 {moradores.map((m) => (
-                  <div key={m.id} className="p-3 rounded-xl border-2 border-gray-200 bg-white flex items-start gap-3">
+                  <div key={m.id} className={`p-3 rounded-xl border-2 ${m.condominio_id ? 'border-gray-200' : 'border-amber-300 bg-amber-50'} bg-white flex items-start gap-3`}>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-gray-800 truncate">{m.nome || '(sem nome)'}</div>
                       <div className="text-xs text-gray-500 truncate">
-                        {m.condominio}{m.bloco ? ` • Bl. ${m.bloco}` : ''}{m.apartamento ? ` • Ap. ${m.apartamento}` : ''}
+                        {m.condominio}{!m.condominio_id && <span className="ml-1 text-amber-700 font-bold">(sem vínculo)</span>}
+                        {m.bloco ? ` • Bl. ${m.bloco}` : ''}{m.apartamento ? ` • Ap. ${m.apartamento}` : ''}
                       </div>
                       <div className="text-xs text-gray-500 truncate">
                         {[m.telefone, m.email].filter(Boolean).join(' • ')}
