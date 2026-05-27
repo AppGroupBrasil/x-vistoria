@@ -7,7 +7,7 @@
     { nome: 'App Vistoria',        arquivo: 'vistoria.png',           link: 'https://xvistoria.com.br',              host: 'xvistoria.com.br' },
     { nome: 'App Votação',         arquivo: 'votacao.png',            link: 'https://appvotacao.com.br',             host: 'appvotacao.com.br' },
     { nome: 'App Correspondência', arquivo: 'correspondencia.png',    link: 'https://www.appcorrespondencia.com.br', host: 'appcorrespondencia.com.br' },
-    { nome: 'App Gestão',          arquivo: 'gestao.png',             link: 'https://appgestaoemlimpeza.com.br',     host: 'appgestaoemlimpeza.com.br' },
+    { nome: 'Gestão e Limpeza',    arquivo: 'gestao.png',             link: 'https://gestaoemlimpeza.com.br',        host: 'gestaoemlimpeza.com.br' },
     { nome: 'Manutenção X',        arquivo: 'manutencao-x.png',       link: 'https://manutencaox.com.br',            host: 'manutencaox.com.br' },
     { nome: 'App Manutenção',      arquivo: 'manutencao.png',         link: 'https://appmanutencao.com.br',          host: 'appmanutencao.com.br' },
     { nome: 'Portaria X',          arquivo: 'portaria-x.png',         link: 'https://www.portariax.com.br',          host: 'portariax.com.br' },
