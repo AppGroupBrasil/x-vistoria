@@ -9,7 +9,7 @@ import clsx from 'clsx'
 const ITEM_KEY: Record<string, string> = {
   'Foto': 'requer_foto',
   'Descrição': 'requer_descricao',
-  'Título': 'requer_titulo',
+  'Campo de resposta escrita': 'requer_titulo',
   'Status (Aberto / Em execução / Finalizado)': 'requer_status',
   'Problema': 'requer_problema',
   'Ocorrência': 'requer_ocorrencia',
@@ -22,7 +22,7 @@ const PERIODICIDADES = ['Diária', 'Semanal', 'Quinzenal', 'Mensal'] as const
 const ITENS_VISTORIA = [
   'Foto',
   'Descrição',
-  'Título',
+  'Campo de resposta escrita',
   'Status (Aberto / Em execução / Finalizado)',
   'Problema',
   'Ocorrência',
