@@ -91,6 +91,61 @@ export default function CadastrosV2Page() {
     }
   }
 
+  // ---- Cadastro de Perfil (apenas admin/master/sindico) ----
+  const podeCadastrarPerfil = user?.role === 'admin' || user?.role === 'master' || user?.role === 'sindico'
+  const rolesPermitidos: { value: string; label: string }[] = (() => {
+    if (user?.role === 'admin' || user?.role === 'master') {
+      return [
+        { value: 'supervisor', label: 'Supervisor' },
+        { value: 'sindico', label: 'Síndico' },
+        { value: 'vistoriador', label: 'Funcionário' },
+      ]
+    }
+    if (user?.role === 'sindico') {
+      return [{ value: 'vistoriador', label: 'Funcionário' }]
+    }
+    return []
+  })()
+
+  const [perfilNome, setPerfilNome] = useState('')
+  const [perfilEmail, setPerfilEmail] = useState('')
+  const [perfilSenha, setPerfilSenha] = useState('')
+  const [perfilRole, setPerfilRole] = useState(rolesPermitidos[0]?.value || '')
+  const [salvandoPerfil, setSalvandoPerfil] = useState(false)
+
+  const ehMaster = user?.role === 'master'
+  type UsuarioRow = { id: string; nome: string; email: string; role: string; ativo: boolean }
+  const [usuariosLista, setUsuariosLista] = useState<UsuarioRow[]>([])
+  useEffect(() => {
+    if (!ehMaster) return
+    api.get('/usuarios').then((r: any) => setUsuariosLista(r as UsuarioRow[])).catch(() => {})
+  }, [ehMaster])
+
+  const recarregarUsuarios = () => {
+    api.get('/usuarios').then((r: any) => setUsuariosLista(r as UsuarioRow[])).catch(() => {})
+  }
+
+  const cadastrarPerfil = async () => {
+    if (!perfilNome.trim() || !perfilEmail.trim() || perfilSenha.length < 6) {
+      return toast.error('Preencha nome, e-mail e senha (mín. 6 caracteres)')
+    }
+    if (!perfilRole) return toast.error('Selecione o tipo de perfil')
+    setSalvandoPerfil(true)
+    try {
+      await api.post('/usuarios', {
+        nome: perfilNome.trim(),
+        email: perfilEmail.trim(),
+        senha: perfilSenha,
+        role: perfilRole,
+      })
+      toast.success('Perfil cadastrado')
+      setPerfilNome(''); setPerfilEmail(''); setPerfilSenha('')
+      if (ehMaster) recarregarUsuarios()
+    } catch (err: any) {
+      toast.error(err?.erro || 'Erro ao cadastrar')
+    } finally { setSalvandoPerfil(false) }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-brand-navy text-white px-6 py-4 flex items-center justify-between shadow">
@@ -119,6 +174,64 @@ export default function CadastrosV2Page() {
             <h1 className="text-3xl font-extrabold text-brand-navy">Cadastros</h1>
             <p className="text-gray-500 mt-1">Preencha os dados básicos da vistoria.</p>
           </div>
+
+          {/* Cadastro de Perfil — apenas admin/master/sindico */}
+          {podeCadastrarPerfil && (
+            <section className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
+                  <User size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-extrabold text-brand-navy">Cadastro de perfil</h2>
+                  <p className="text-sm text-gray-700">
+                    {user?.role === 'sindico'
+                      ? 'Cadastre os funcionários que ficarão sob sua responsabilidade.'
+                      : 'Cadastre supervisores, síndicos e funcionários da administradora.'}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  placeholder="Nome completo" value={perfilNome} onChange={(e) => setPerfilNome(e.target.value)} />
+                <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  placeholder="E-mail" type="email" value={perfilEmail} onChange={(e) => setPerfilEmail(e.target.value)} />
+                <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  placeholder="Senha (mín. 6 caracteres)" type="password" value={perfilSenha} onChange={(e) => setPerfilSenha(e.target.value)} />
+                <select className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  value={perfilRole} onChange={(e) => setPerfilRole(e.target.value)}>
+                  {rolesPermitidos.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={cadastrarPerfil}
+                disabled={salvandoPerfil}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-500/30 active:scale-95 disabled:opacity-50"
+              >
+                {salvandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <User size={16} />} Cadastrar perfil
+              </button>
+
+              {ehMaster && usuariosLista.length > 0 && (
+                <div className="mt-5">
+                  <p className="text-xs font-bold text-gray-700 mb-2">Todos os usuários ({usuariosLista.length})</p>
+                  <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                    {usuariosLista.map((u) => (
+                      <div key={u.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white border border-gray-200">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-gray-800 truncate">{u.nome}</div>
+                          <div className="text-[11px] text-gray-500 truncate">{u.email}</div>
+                        </div>
+                        <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{u.role}</span>
+                        <span className={`text-[10px] font-bold ${u.ativo ? 'text-emerald-600' : 'text-gray-400'}`}>{u.ativo ? '●' : '○'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* 1. Condomínio */}
           <div>

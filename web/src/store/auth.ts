@@ -6,7 +6,7 @@ interface User {
   id: string
   nome: string
   email: string
-  role: 'master' | 'admin' | 'supervisor' | 'sindico'
+  role: 'master' | 'admin' | 'supervisor' | 'sindico' | 'vistoriador'
   empresa_id: string
   empresa_nome: string
   avatar_url?: string
