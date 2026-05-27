@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { TIPOS } from './SimplesV2Page'
+import GeoGate from '../../components/GeoGate'
 
 type Foto = { id: string; url: string; nome: string }
 
@@ -37,15 +38,9 @@ function lerFoto(file: File): Promise<Foto> {
 }
 
 export default function SimplesExecV2Page() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const { tipo } = useParams<{ tipo: string }>()
+  const navigate = useNavigate()
   const def = TIPOS.find((t) => t.key === tipo)
-
-  const [itens, setItens] = useState<any[]>([])
-  const [salvando, setSalvando] = useState(false)
-
-  const sair = () => { logout(); navigate('/login') }
 
   if (!def) {
     return (
@@ -54,6 +49,20 @@ export default function SimplesExecV2Page() {
       </div>
     )
   }
+
+  return (
+    <GeoGate voltarPara="/x-vistoria/simples">
+      {(geo) => <ExecConteudo tipo={tipo!} def={def} geoInicio={geo} />}
+    </GeoGate>
+  )
+}
+
+function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoInicio: { lat: number; lng: number } }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const [itens, setItens] = useState<any[]>([])
+  const [salvando, setSalvando] = useState(false)
+  const sair = () => { logout(); navigate('/login') }
 
   const adicionar = () => {
     const base = { id: uid() }
@@ -78,7 +87,9 @@ export default function SimplesExecV2Page() {
     if (itens.length === 0) return toast.error('Adicione pelo menos um item')
     setSalvando(true)
     try {
-      // TODO: salvar no backend
+      // Captura a localização também ao enviar (fim)
+      // TODO: salvar no backend usando geoInicio + geoFim + itens
+      console.log('geo início:', geoInicio)
       await new Promise((r) => setTimeout(r, 500))
       toast.success('Vistoria enviada!')
       navigate('/x-vistoria')
