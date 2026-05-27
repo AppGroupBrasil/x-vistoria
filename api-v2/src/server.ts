@@ -22,6 +22,10 @@ import historicoRoutes from './routes/historico.js'
 import vistoriaSimplesRoutes from './routes/vistoriaSimples.js'
 import aiRoutes from './routes/ai.js'
 import timelineRoutes from './routes/timeline.js'
+import moradoresRoutes from './routes/moradores.js'
+import blocosRoutes from './routes/blocos.js'
+import bibliotecaRoutes from './routes/biblioteca.js'
+import notificacoesRoutes from './routes/notificacoes.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -51,6 +55,10 @@ await app.register(async (api) => {
   await api.register(vistoriaSimplesRoutes)
   await api.register(aiRoutes)
   await api.register(timelineRoutes)
+  await api.register(moradoresRoutes)
+  await api.register(blocosRoutes)
+  await api.register(bibliotecaRoutes)
+  await api.register(notificacoesRoutes)
 }, { prefix: '/api/v1' })
 
 const port = Number(process.env.PORT || 5100)

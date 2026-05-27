@@ -76,6 +76,10 @@ model Empresa {
   perguntas    Pergunta[]
   visitas      Visita[]
   vistoriasSimples VistoriaSimples[]
+  blocos       Bloco[]
+  moradores    Morador[]
+  bibliotecaPerguntas BibliotecaPergunta[]
+  notificacoes NotificacaoEnviada[]
 
   @@map("empresas")
 }
@@ -96,6 +100,7 @@ model Usuario {
   visitasCriadas    Visita[] @relation("VisitaCriador")
   condominiosResponsavel Condominio[] @relation("CondominioVistoriadorPadrao")
   mensagens   Mensagem[]
+  notificacoesEnviadas NotificacaoEnviada[] @relation("NotifAutor")
 
   @@index([empresaId])
   @@map("usuarios")
@@ -115,10 +120,80 @@ model Condominio {
   vistoriadorPadrao   Usuario? @relation("CondominioVistoriadorPadrao", fields: [vistoriadorPadraoId], references: [id], onDelete: SetNull)
   criadoEm  DateTime @default(now()) @map("criado_em")
   visitas   Visita[]
+  blocos    Bloco[]
+  moradores Morador[]
 
   @@index([empresaId])
   @@index([vistoriadorPadraoId])
   @@map("condominios")
+}
+
+model Bloco {
+  id            String     @id @default(uuid())
+  empresaId     String     @map("empresa_id")
+  empresa       Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  condominioId  String     @map("condominio_id")
+  condominio    Condominio @relation(fields: [condominioId], references: [id], onDelete: Cascade)
+  nome          String
+  criadoEm      DateTime   @default(now()) @map("criado_em")
+
+  @@unique([condominioId, nome])
+  @@index([empresaId])
+  @@map("blocos")
+}
+
+model Morador {
+  id            String      @id @default(uuid())
+  empresaId     String      @map("empresa_id")
+  empresa       Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  condominioId  String?     @map("condominio_id")
+  condominio    Condominio? @relation(fields: [condominioId], references: [id], onDelete: SetNull)
+  condominioNome String?    @map("condominio_nome")
+  bloco         String?
+  apartamento   String?
+  nome          String
+  telefone      String?
+  email         String?
+  criadoEm      DateTime    @default(now()) @map("criado_em")
+
+  notificacoes  NotificacaoEnviada[]
+
+  @@index([empresaId])
+  @@index([condominioId])
+  @@map("moradores")
+}
+
+model BibliotecaPergunta {
+  id         String   @id @default(uuid())
+  empresaId  String   @map("empresa_id")
+  empresa    Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria  String
+  texto      String
+  itens      Json     @default("{}")
+  criadoEm   DateTime @default(now()) @map("criado_em")
+
+  @@index([empresaId, categoria])
+  @@map("biblioteca_perguntas")
+}
+
+model NotificacaoEnviada {
+  id          String   @id @default(uuid())
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  autorId     String?  @map("autor_id")
+  autor       Usuario? @relation("NotifAutor", fields: [autorId], references: [id], onDelete: SetNull)
+  moradorId   String?  @map("morador_id")
+  morador     Morador? @relation(fields: [moradorId], references: [id], onDelete: SetNull)
+  moradorNome String?  @map("morador_nome")
+  titulo      String
+  descricao   String
+  imagens     Json     @default("[]")
+  canais      String[] @default([])
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  @@index([empresaId])
+  @@index([criadoEm])
+  @@map("notificacoes_enviadas")
 }
 
 model Categoria {

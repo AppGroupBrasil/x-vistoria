@@ -6,6 +6,7 @@ import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle, Pencil
 import clsx from 'clsx'
 import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type CategoriaBib } from '../../data/biblioteca'
 import MicDictar from '../../components/MicDictar'
+import { api } from '../../api/client'
 
 const ITENS_PERSONALIZADA = [
   'Assinatura',
@@ -48,57 +49,60 @@ export default function BibliotecaV2Page() {
 
   const sair = () => { logout(); navigate('/login') }
 
-  const LIB_OVERLAY_KEY = 'xv-biblioteca-overlay'
-  const carregarOverlay = (): Partial<Record<CategoriaBib, string[]>> => {
-    try { return JSON.parse(localStorage.getItem(LIB_OVERLAY_KEY) || '{}') } catch { return {} }
+  type CustomPergunta = { id: string; categoria: CategoriaBib; texto: string }
+  const [customizadas, setCustomizadas] = useState<CustomPergunta[]>([])
+  const recarregar = () => {
+    api.get('/biblioteca-perguntas').then((r: any) => setCustomizadas(r as CustomPergunta[])).catch(() => {})
   }
-  const [overlay, setOverlay] = useState<Partial<Record<CategoriaBib, string[]>>>(carregarOverlay)
-  const salvarOverlay = (next: Partial<Record<CategoriaBib, string[]>>) => {
-    setOverlay(next)
-    localStorage.setItem(LIB_OVERLAY_KEY, JSON.stringify(next))
-  }
-  const lista = overlay[aba] ?? BIBLIOTECA[aba]
+  useEffect(() => { recarregar() }, [])
+
+  const customDaAba = customizadas.filter((p) => p.categoria === aba)
+  // lista exibida: customizadas primeiro, depois defaults (defaults read-only)
+  const lista = [...customDaAba.map((p) => p.texto), ...BIBLIOTECA[aba]]
   const selAtual = sel[aba]
 
   const [novaPergunta, setNovaPergunta] = useState('')
-  const [editandoIdx, setEditandoIdx] = useState<number | null>(null)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [editTexto, setEditTexto] = useState('')
 
-  const updateLista = (next: string[]) => salvarOverlay({ ...overlay, [aba]: next })
+  const idDaCustomizada = (texto: string) => customDaAba.find((p) => p.texto === texto)?.id
 
-  const adicionar = () => {
+  const adicionar = async () => {
     const t = novaPergunta.trim()
     if (!t) return
     if (lista.includes(t)) { toast.error('Esta pergunta já existe nesta seção'); return }
-    updateLista([t, ...lista])
-    setNovaPergunta('')
-    toast.success('Pergunta adicionada')
+    try {
+      await api.post('/biblioteca-perguntas', { categoria: aba, texto: t })
+      setNovaPergunta('')
+      recarregar()
+      toast.success('Pergunta adicionada')
+    } catch (e: any) { toast.error(e?.erro || 'Erro ao salvar') }
   }
 
-  const excluir = (texto: string) => {
-    updateLista(lista.filter((t) => t !== texto))
-    setSel((prev) => {
-      const next = new Set(prev[aba]); next.delete(texto)
-      return { ...prev, [aba]: next }
-    })
+  const excluir = async (texto: string) => {
+    const id = idDaCustomizada(texto)
+    if (!id) { toast.error('Perguntas padrão não podem ser excluídas'); return }
+    try {
+      await api.delete(`/biblioteca-perguntas/${id}`)
+      setSel((prev) => {
+        const next = new Set(prev[aba]); next.delete(texto)
+        return { ...prev, [aba]: next }
+      })
+      recarregar()
+    } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
-  const iniciarEdicao = (idx: number, texto: string) => { setEditandoIdx(idx); setEditTexto(texto) }
-  const cancelarEdicao = () => { setEditandoIdx(null); setEditTexto('') }
-  const confirmarEdicao = (idx: number) => {
+  const iniciarEdicao = (id: string, texto: string) => { setEditandoId(id); setEditTexto(texto) }
+  const cancelarEdicao = () => { setEditandoId(null); setEditTexto('') }
+  const confirmarEdicao = async (id: string) => {
     const novo = editTexto.trim()
     if (!novo) return
-    const antigo = lista[idx]
-    if (novo !== antigo && lista.includes(novo)) { toast.error('Já existe uma pergunta igual'); return }
-    const next = [...lista]; next[idx] = novo
-    updateLista(next)
-    if (selAtual.has(antigo)) {
-      setSel((prev) => {
-        const set = new Set(prev[aba]); set.delete(antigo); set.add(novo)
-        return { ...prev, [aba]: set }
-      })
-    }
-    cancelarEdicao()
+    if (lista.includes(novo)) { toast.error('Já existe uma pergunta igual'); return }
+    try {
+      await api.patch(`/biblioteca-perguntas/${id}`, { texto: novo })
+      recarregar()
+      cancelarEdicao()
+    } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
   const toggle = (texto: string) => {
@@ -226,10 +230,12 @@ export default function BibliotecaV2Page() {
 
           {/* Lista */}
           <div className="space-y-1.5">
-            {lista.map((t, idx) => {
+            {lista.map((t) => {
               const marcada = selAtual.has(t)
               const itensDaQuestao = itensPers[t] || {}
-              const editando = editandoIdx === idx
+              const custId = idDaCustomizada(t)
+              const editavel = !!custId
+              const editando = editandoId === custId && editavel
               return (
                 <div
                   key={t}
@@ -245,13 +251,13 @@ export default function BibliotecaV2Page() {
                         value={editTexto}
                         onChange={(e) => setEditTexto(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') confirmarEdicao(idx)
+                          if (e.key === 'Enter') confirmarEdicao(custId!)
                           if (e.key === 'Escape') cancelarEdicao()
                         }}
                         autoFocus
                         className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
                       />
-                      <button onClick={() => confirmarEdicao(idx)} className="p-2 text-brand-green hover:bg-emerald-100 rounded-lg" aria-label="Confirmar"><Check size={16} /></button>
+                      <button onClick={() => confirmarEdicao(custId!)} className="p-2 text-brand-green hover:bg-emerald-100 rounded-lg" aria-label="Confirmar"><Check size={16} /></button>
                       <button onClick={cancelarEdicao} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg" aria-label="Cancelar"><X size={16} /></button>
                     </div>
                   ) : (
@@ -262,9 +268,14 @@ export default function BibliotecaV2Page() {
                           : <Square size={18} className="text-gray-300 flex-shrink-0" />}
                         <input type="checkbox" checked={marcada} onChange={() => toggle(t)} className="sr-only" />
                         <span className="text-sm text-gray-800 truncate">{t}</span>
+                        {!editavel && <span className="text-[10px] font-bold uppercase text-gray-400 flex-shrink-0">padrão</span>}
                       </label>
-                      <button onClick={() => iniciarEdicao(idx, t)} className="p-1.5 text-gray-400 hover:text-brand-navy" aria-label="Editar"><Pencil size={14} /></button>
-                      <button onClick={() => excluir(t)} className="p-1.5 text-gray-400 hover:text-red-500" aria-label="Excluir"><Trash2 size={14} /></button>
+                      {editavel && (
+                        <>
+                          <button onClick={() => iniciarEdicao(custId!, t)} className="p-1.5 text-gray-400 hover:text-brand-navy" aria-label="Editar"><Pencil size={14} /></button>
+                          <button onClick={() => excluir(t)} className="p-1.5 text-gray-400 hover:text-red-500" aria-label="Excluir"><Trash2 size={14} /></button>
+                        </>
+                      )}
                     </div>
                   )}
 

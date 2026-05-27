@@ -19,10 +19,6 @@ type Morador = {
   email: string
 }
 
-const STORAGE = 'xv-moradores'
-const STORAGE_BLOCOS = 'xv-blocos'
-const STORAGE_NOTIF = 'xv-notificacoes-historico'
-
 type NotifImg = { url: string; nome: string }
 type NotifEnviada = {
   id: string
@@ -45,9 +41,6 @@ function montarTexto(titulo: string, descricao: string, imgs: NotifImg[]): strin
   return linhas.filter((l) => l !== undefined).join('\n')
 }
 const uid = () => Math.random().toString(36).slice(2, 10)
-const carregar = (): Morador[] => {
-  try { return JSON.parse(localStorage.getItem(STORAGE) || '[]') } catch { return [] }
-}
 
 const COLUNAS = ['condominio', 'bloco', 'apartamento', 'nome', 'telefone', 'email'] as const
 
@@ -79,15 +72,35 @@ export default function NotificacoesV2Page() {
   const navigate = useNavigate()
   const sair = () => { logout(); navigate('/login') }
 
-  const [moradores, setMoradores] = useState<Morador[]>(carregar)
+  const [moradores, setMoradores] = useState<Morador[]>([])
   const [condominios, setCondominios] = useState<CondominioCad[]>([])
-  const [blocos, setBlocos] = useState<Record<string, string[]>>(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_BLOCOS) || '{}') } catch { return {} }
-  })
-  const persistirBlocos = (next: Record<string, string[]>) => {
-    setBlocos(next)
-    localStorage.setItem(STORAGE_BLOCOS, JSON.stringify(next))
+  const [blocos, setBlocos] = useState<Record<string, string[]>>({})
+
+  const recarregarMoradores = () => {
+    api.get('/moradores').then((r: any) => setMoradores(r as Morador[])).catch(() => {})
   }
+  const recarregarBlocos = () => {
+    api.get('/blocos').then((r: any) => {
+      const map: Record<string, string[]> = {}
+      for (const b of r as { id: string; condominio_id: string; nome: string }[]) {
+        if (!map[b.condominio_id]) map[b.condominio_id] = []
+        map[b.condominio_id].push(b.nome)
+      }
+      setBlocos(map)
+    }).catch(() => {})
+  }
+  // blocoIds usado pra excluir por nome → id no servidor
+  const [blocoIds, setBlocoIds] = useState<Record<string, Record<string, string>>>({})
+  useEffect(() => {
+    api.get('/blocos').then((r: any) => {
+      const ids: Record<string, Record<string, string>> = {}
+      for (const b of r as { id: string; condominio_id: string; nome: string }[]) {
+        if (!ids[b.condominio_id]) ids[b.condominio_id] = {}
+        ids[b.condominio_id][b.nome] = b.id
+      }
+      setBlocoIds(ids)
+    }).catch(() => {})
+  }, [moradores]) // recarrega quando moradores muda (cheap), também ao adicionar bloco abaixo
 
   const [blocoCondId, setBlocoCondId] = useState<string>('')
   const [blocoNome, setBlocoNome] = useState('')
@@ -96,45 +109,43 @@ export default function NotificacoesV2Page() {
 
   const blocosDoCond = blocoCondId ? (blocos[blocoCondId] || []) : []
 
-  const adicionarBlocoNomeado = () => {
+  const adicionarBlocoNomeado = async () => {
     if (!blocoCondId) return toast.error('Selecione o condomínio')
     const nome = blocoNome.trim()
     if (!nome) return
-    const atuais = blocos[blocoCondId] || []
-    if (atuais.includes(nome)) return toast.error('Esse bloco já existe')
-    persistirBlocos({ ...blocos, [blocoCondId]: [...atuais, nome] })
-    setBlocoNome('')
+    try {
+      await api.post('/blocos', { condominio_id: blocoCondId, nome })
+      setBlocoNome('')
+      recarregarBlocos()
+    } catch (e: any) { toast.error(e?.erro || 'Erro ao salvar bloco') }
   }
 
-  const cadastrarBlocosEmLote = () => {
+  const cadastrarBlocosEmLote = async () => {
     if (!blocoCondId) return toast.error('Selecione o condomínio')
     const n = parseInt(blocoQtd, 10)
     if (!n || n < 1 || n > 999) return toast.error('Informe uma quantidade entre 1 e 999')
-    const prefixo = blocoPrefixo.trim() ? blocoPrefixo : ''
-    const atuais = blocos[blocoCondId] || []
-    const gerados: string[] = []
-    for (let i = 1; i <= n; i++) {
-      const nome = `${prefixo}${i}`.trim()
-      if (!atuais.includes(nome)) gerados.push(nome)
-    }
-    if (gerados.length === 0) return toast('Todos os blocos já existem', { icon: 'ℹ️' })
-    persistirBlocos({ ...blocos, [blocoCondId]: [...atuais, ...gerados] })
-    setBlocoQtd('')
-    toast.success(`${gerados.length} bloco(s) cadastrado(s)`)
+    try {
+      const r: any = await api.post('/blocos/lote', { condominio_id: blocoCondId, prefixo: blocoPrefixo || '', quantidade: n })
+      setBlocoQtd('')
+      if (r.inseridos > 0) toast.success(`${r.inseridos} bloco(s) cadastrado(s)`)
+      else toast('Todos os blocos já existem', { icon: 'ℹ️' })
+      recarregarBlocos()
+    } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
-  const excluirBloco = (nome: string) => {
-    const atuais = blocos[blocoCondId] || []
-    persistirBlocos({ ...blocos, [blocoCondId]: atuais.filter((b) => b !== nome) })
+  const excluirBloco = async (nome: string) => {
+    const id = blocoIds[blocoCondId]?.[nome]
+    if (!id) return
+    try {
+      await api.delete(`/blocos/${id}`)
+      recarregarBlocos()
+    } catch (e: any) { toast.error(e?.erro || 'Erro') }
   }
 
   // ---- Notificações enviadas ----
-  const [historico, setHistorico] = useState<NotifEnviada[]>(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_NOTIF) || '[]') } catch { return [] }
-  })
-  const persistirHistorico = (lista: NotifEnviada[]) => {
-    setHistorico(lista)
-    localStorage.setItem(STORAGE_NOTIF, JSON.stringify(lista))
+  const [historico, setHistorico] = useState<NotifEnviada[]>([])
+  const recarregarHistorico = () => {
+    api.get('/notificacoes').then((r: any) => setHistorico(r as NotifEnviada[])).catch(() => {})
   }
 
   const [notifMoradorId, setNotifMoradorId] = useState('')
@@ -195,28 +206,26 @@ export default function NotificacoesV2Page() {
       window.location.href = `mailto:${moradorSelecionado.email}?subject=${subject}&body=${body}`
     }
 
-    const reg: NotifEnviada = {
-      id: uid(),
-      data: new Date().toISOString(),
+    api.post('/notificacoes', {
       morador_id: moradorSelecionado.id,
       morador_nome: moradorSelecionado.nome,
       titulo: notifTitulo.trim(),
       descricao: notifDesc.trim(),
       imagens: notifImgs,
       canais,
-    }
-    persistirHistorico([reg, ...historico])
-    toast.success('Notificação registrada e aberta no canal escolhido')
-    setNotifTitulo(''); setNotifDesc(''); setNotifImgs([])
-  }
-  const persistir = (lista: Morador[]) => {
-    setMoradores(lista)
-    localStorage.setItem(STORAGE, JSON.stringify(lista))
+    }).then(() => {
+      toast.success('Notificação registrada e aberta no canal escolhido')
+      setNotifTitulo(''); setNotifDesc(''); setNotifImgs([])
+      recarregarHistorico()
+    }).catch((e: any) => toast.error(e?.erro || 'Falha ao registrar notificação'))
   }
   useEffect(() => {
     api.get('/atribuicoes')
       .then((r: any) => setCondominios((r as CondominioCad[]).map((c) => ({ id: c.id, nome: c.nome }))))
       .catch(() => { /* silencioso */ })
+    recarregarMoradores()
+    recarregarBlocos()
+    recarregarHistorico()
   }, [])
 
   const [form, setForm] = useState<Omit<Morador, 'id'>>({
@@ -230,30 +239,49 @@ export default function NotificacoesV2Page() {
     setForm((p) => ({ ...p, condominio_id: cad?.id || null, condominio: cad?.nome || '' }))
   }
 
-  const adicionarManual = () => {
+  const adicionarManual = async () => {
     if (!form.nome.trim() || !form.apartamento.trim() || !form.condominio_id) {
       return toast.error('Selecione o condomínio e preencha apartamento e nome')
     }
-    persistir([{ id: uid(), ...form }, ...moradores])
-    setForm({ condominio_id: form.condominio_id, condominio: form.condominio, bloco: form.bloco, apartamento: '', nome: '', telefone: '', email: '' })
-    toast.success('Morador cadastrado')
-    setModalManual(false)
+    try {
+      await api.post('/moradores', {
+        condominio_id: form.condominio_id,
+        condominio_nome: form.condominio,
+        bloco: form.bloco, apartamento: form.apartamento, nome: form.nome,
+        telefone: form.telefone, email: form.email,
+      })
+      setForm({ condominio_id: form.condominio_id, condominio: form.condominio, bloco: form.bloco, apartamento: '', nome: '', telefone: '', email: '' })
+      toast.success('Morador cadastrado')
+      setModalManual(false)
+      recarregarMoradores()
+    } catch (e: any) { toast.error(e?.erro || 'Erro ao cadastrar') }
   }
 
-  const excluir = (id: string) => persistir(moradores.filter((m) => m.id !== id))
+  const excluir = async (id: string) => {
+    try { await api.delete(`/moradores/${id}`); recarregarMoradores() }
+    catch (e: any) { toast.error(e?.erro || 'Erro') }
+  }
 
   const importarLote = async (file: File) => {
     try {
       const texto = await file.text()
       const { moradores: novos, semVinculo } = parseCsv(texto, condominios)
       if (novos.length === 0) return toast.error('Nenhuma linha válida encontrada')
-      persistir([...novos, ...moradores])
+      await api.post('/moradores/lote', {
+        moradores: novos.map((m) => ({
+          condominio_id: m.condominio_id,
+          condominio_nome: m.condominio,
+          bloco: m.bloco, apartamento: m.apartamento, nome: m.nome,
+          telefone: m.telefone, email: m.email,
+        })),
+      })
       if (semVinculo > 0) {
         toast(`${novos.length} importado(s). ${semVinculo} sem vínculo com condomínio cadastrado.`, { icon: '⚠️' })
       } else {
         toast.success(`${novos.length} morador(es) importado(s)`)
       }
       setModalLote(false)
+      recarregarMoradores()
     } catch {
       toast.error('Erro ao ler o arquivo')
     }
