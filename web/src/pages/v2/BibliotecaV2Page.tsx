@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Download, CheckSquare, Square } from 'lucide-react'
+import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type CategoriaBib } from '../../data/biblioteca'
 
@@ -106,6 +106,24 @@ export default function BibliotecaV2Page() {
               <span className="text-gray-300">|</span>
               <button onClick={desmarcarTodos} className="font-bold text-gray-500 hover:underline">Desmarcar</button>
             </div>
+          </div>
+
+          {/* Funções personalizadas */}
+          <div className="mb-5 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-bold text-gray-800">Precisa de questões personalizadas?</p>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Solicite categorias ou perguntas exclusivas para sua operação. Adicionamos em poucas horas, sem custo.
+              </p>
+            </div>
+            <a
+              href="https://wa.me/5511933284364?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20quest%C3%B5es%20personalizadas%20na%20biblioteca%20do%20X%20Vistoria."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-sm font-bold hover:bg-[#1ebe57] active:scale-95"
+            >
+              <MessageCircle size={16} /> Solicitar pelo WhatsApp
+            </a>
           </div>
 
           {/* Lista */}
