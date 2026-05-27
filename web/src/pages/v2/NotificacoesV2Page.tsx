@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X, Users } from 'lucide-react'
+import { ArrowLeft, LogOut, Bell, Plus, Trash2, Upload, Download, AlertTriangle, Mail, MessageCircle, Send, Image as ImageIcon, Loader2, X, Users, Eye, EyeOff, MousePointerClick } from 'lucide-react'
 import MicDictar from '../../components/MicDictar'
 
 type CondominioCad = { id: string; nome: string }
@@ -29,6 +29,12 @@ type NotifEnviada = {
   descricao: string
   imagens: NotifImg[]
   canais: ('email' | 'whatsapp')[]
+  enviado_email?: boolean
+  aberto_em?: string | null
+  aberto_cliente?: string | null
+  aberto_ua?: string | null
+  aberturas?: number
+  clicado_em?: string | null
 }
 
 function soDigitos(s: string) { return (s || '').replace(/\D/g, '') }
@@ -189,38 +195,42 @@ export default function NotificacoesV2Page() {
   const [modalManual, setModalManual] = useState(false)
   const [modalLote, setModalLote] = useState(false)
 
-  const enviar = (canais: ('email' | 'whatsapp')[]) => {
+  const enviar = async (canais: ('email' | 'whatsapp')[]) => {
     if (!moradorSelecionado) return toast.error('Selecione um morador')
     if (!notifTitulo.trim() || !notifDesc.trim()) return toast.error('Preencha título e descrição')
     if (canais.includes('email') && !moradorSelecionado.email) return toast.error('Este morador não tem e-mail cadastrado')
     if (canais.includes('whatsapp') && !moradorSelecionado.telefone) return toast.error('Este morador não tem telefone cadastrado')
 
-    const texto = montarTexto(notifTitulo.trim(), notifDesc.trim(), notifImgs)
-
     if (canais.includes('whatsapp')) {
+      const texto = montarTexto(notifTitulo.trim(), notifDesc.trim(), notifImgs)
       const fone = soDigitos(moradorSelecionado.telefone)
       const numero = fone.length <= 11 ? `55${fone}` : fone
       const url = `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
       window.open(url, '_blank', 'noopener,noreferrer')
     }
-    if (canais.includes('email')) {
-      const subject = encodeURIComponent(notifTitulo.trim())
-      const body = encodeURIComponent(texto)
-      window.location.href = `mailto:${moradorSelecionado.email}?subject=${subject}&body=${body}`
-    }
 
-    api.post('/notificacoes', {
-      morador_id: moradorSelecionado.id,
-      morador_nome: moradorSelecionado.nome,
-      titulo: notifTitulo.trim(),
-      descricao: notifDesc.trim(),
-      imagens: notifImgs,
-      canais,
-    }).then(() => {
-      toast.success('Notificação registrada e aberta no canal escolhido')
+    try {
+      const r: any = await api.post('/notificacoes', {
+        morador_id: moradorSelecionado.id,
+        morador_nome: moradorSelecionado.nome,
+        email_destino: moradorSelecionado.email || null,
+        titulo: notifTitulo.trim(),
+        descricao: notifDesc.trim(),
+        imagens: notifImgs,
+        canais,
+      })
+      if (canais.includes('email')) {
+        if (r.aviso_email) toast.error(r.aviso_email)
+        else if (r.enviado_email) toast.success('E-mail enviado — abertura será rastreada')
+        else toast('Notificação registrada', { icon: '📨' })
+      } else {
+        toast.success('Notificação registrada')
+      }
       setNotifTitulo(''); setNotifDesc(''); setNotifImgs([])
       recarregarHistorico()
-    }).catch((e: any) => toast.error(e?.erro || 'Falha ao registrar notificação'))
+    } catch (e: any) {
+      toast.error(e?.erro || 'Falha ao registrar notificação')
+    }
   }
   useEffect(() => {
     api.get('/atribuicoes')
@@ -230,6 +240,8 @@ export default function NotificacoesV2Page() {
     recarregarBlocos()
     recarregarBlocoIds()
     recarregarHistorico()
+    const t = setInterval(recarregarHistorico, 30000)
+    return () => clearInterval(t)
   }, [])
 
   const [form, setForm] = useState<Omit<Morador, 'id'>>({
@@ -514,6 +526,30 @@ export default function NotificacoesV2Page() {
                           Para <strong>{n.morador_nome}</strong> • {new Date(n.data).toLocaleString('pt-BR')}
                         </div>
                         <div className="text-xs text-gray-600 mt-1 line-clamp-2">{n.descricao}</div>
+                        {n.canais.includes('email') && (
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            {n.aberto_em ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                                <Eye size={11} /> Aberto {new Date(n.aberto_em).toLocaleString('pt-BR')}
+                                {n.aberto_cliente && ` · ${n.aberto_cliente}`}
+                                {(n.aberturas || 0) > 1 && ` (${n.aberturas}x)`}
+                              </span>
+                            ) : n.enviado_email ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px] font-bold">
+                                <EyeOff size={11} /> Enviado — aguardando abertura
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                                ⚠ Não enviado por SMTP
+                              </span>
+                            )}
+                            {n.clicado_em && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold">
+                                <MousePointerClick size={11} /> Clicou
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         {n.canais.includes('email') && <Mail size={14} className="text-blue-600" />}

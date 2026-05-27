@@ -28,6 +28,7 @@ import bibliotecaRoutes from './routes/biblioteca.js'
 import notificacoesRoutes from './routes/notificacoes.js'
 import empresaRoutes from './routes/empresa.js'
 import assinaturaRoutes from './routes/assinatura.js'
+import trackingRoutes from './routes/tracking.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -63,6 +64,7 @@ await app.register(async (api) => {
   await api.register(notificacoesRoutes)
   await api.register(empresaRoutes)
   await api.register(assinaturaRoutes)
+  await api.register(trackingRoutes)
 }, { prefix: '/api/v1' })
 
 const port = Number(process.env.PORT || 5100)
