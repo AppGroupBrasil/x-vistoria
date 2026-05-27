@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library } from 'lucide-react'
+import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library, Users } from 'lucide-react'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
