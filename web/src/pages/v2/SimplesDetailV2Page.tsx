@@ -5,7 +5,6 @@ import { api } from '../../api/client'
 import toast from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import { ArrowLeft, LogOut, Loader2, Printer, MapPin, Clock, CheckCircle, User, Star, FileSignature } from 'lucide-react'
-import toast from 'react-hot-toast'
 
 const TIPO_LABEL: Record<string, string> = {
   foto_descricao: 'Foto e descrição',

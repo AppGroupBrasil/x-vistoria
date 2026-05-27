@@ -21,7 +21,7 @@ export default function HomeV2Page() {
   const navigate = useNavigate()
 
   const [sync, setSync] = useState<StatusSync | null>(null)
-  useEffect(() => aoMudarStatus(setSync), [])
+  useEffect(() => { aoMudarStatus(setSync) }, [])
   const pendentes = (sync?.fotosPendentes || 0) + (sync?.vistoriasPendentes || 0)
 
   const veTudo = user?.role && ROLES_VEM_TUDO.has(user.role)
