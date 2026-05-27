@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import {
   ArrowLeft, LogOut, Camera, ListChecks, MessageSquareText,
-  CheckSquare, ArrowLeftRight, Star, SlidersHorizontal,
+  CheckSquare, ArrowLeftRight, Star, SlidersHorizontal, Library,
 } from 'lucide-react'
 import GeoGate from '../../components/GeoGate'
 
@@ -58,6 +58,19 @@ function Conteudo({ geo }: { geo: { lat: number; lng: number } }) {
             <h1 className="text-3xl font-extrabold text-brand-navy">Vistoria</h1>
             <p className="text-gray-500 mt-1">Escolha o tipo de vistoria. Você adiciona itens e no final salva e envia.</p>
           </div>
+
+          <button
+            onClick={() => navigate('/x-vistoria/biblioteca')}
+            className="w-full mb-4 p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl active:scale-[0.99] transition-all flex items-center gap-4 text-left"
+          >
+            <Library size={32} strokeWidth={1.75} className="flex-shrink-0" />
+            <div className="flex-1">
+              <div className="font-bold text-base">Biblioteca</div>
+              <div className="text-xs text-white/85 mt-0.5 leading-snug">
+                Questões prontas por categoria. Marque, importe e a vistoria já abre preenchida.
+              </div>
+            </div>
+          </button>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {TIPOS.map((t) => (
