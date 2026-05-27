@@ -25,7 +25,7 @@ const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || './uploads')
 if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true })
 
 await app.register(cors, { origin: true, credentials: true })
-await app.register(multipart, { limits: { fileSize: 20 * 1024 * 1024 } })
+await app.register(multipart, { limits: { fileSize: 2 * 1024 * 1024 } })
 await app.register(fastifyStatic, { root: UPLOAD_DIR, prefix: '/uploads/' })
 await app.register(authPlugin)
 

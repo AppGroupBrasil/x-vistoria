@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import MensagemModal from '../components/MensagemModal'
+import { compactarImagem } from '../lib/compactarImagem'
 
 type Resultado = 'ok' | 'nao_ok' | 'na' | null
 type Status = 'aberto' | 'em_execucao' | 'finalizado' | null
@@ -138,17 +139,19 @@ export default function ChecklistPage() {
 
   const handleUploadFoto = async (perguntaId: string, files: FileList | null) => {
     if (!files?.length) return
+    const toastId = toast.loading(files.length > 1 ? `Enviando ${files.length} fotos…` : 'Enviando foto…')
     try {
-      for (const file of Array.from(files)) {
+      for (const original of Array.from(files)) {
+        const file = await compactarImagem(original)
         const fd = new FormData()
         fd.append('file', file)
         fd.append('visita_id', visitaId ?? '')
         fd.append('pergunta_id', perguntaId)
         await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       }
-      toast.success('Foto enviada')
+      toast.success(files.length > 1 ? `${files.length} fotos enviadas` : 'Foto enviada', { id: toastId })
       uploadFoto.reset()
-    } catch (err: any) { toast.error(extrairErro(err, 'Erro ao enviar foto.')) }
+    } catch (err: any) { toast.error(extrairErro(err, 'Erro ao enviar foto.'), { id: toastId }) }
   }
 
   const handleFinalizar = async () => {
