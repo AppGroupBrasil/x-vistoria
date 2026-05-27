@@ -29,13 +29,25 @@ export default function NotificacoesV2Page() {
         <div className="w-full max-w-3xl space-y-6">
           <div>
             <h1 className="text-3xl font-extrabold text-brand-navy">Notificações</h1>
-            <p className="text-gray-500 mt-1">Acompanhe os alertas, ocorrências e atualizações das suas vistorias.</p>
+            <p className="text-gray-500 mt-1">Envie um aviso direto ao morador em caso de ocorrência ou problema identificado.</p>
+          </div>
+
+          <div className="p-5 rounded-2xl border-2 border-blue-300 bg-blue-50 flex items-start gap-3">
+            <Bell size={22} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-blue-900">Para que serve esta tela</p>
+              <p className="text-sm text-blue-800 mt-1">
+                Este quadrado serve para o funcionário <strong>notificar o morador</strong> sempre que houver
+                uma ocorrência ou problema na vistoria — como vazamento, falha em equipamento, irregularidade
+                ou qualquer alerta que exija atenção imediata.
+              </p>
+            </div>
           </div>
 
           <div className="card p-10 text-center border-2 border-dashed border-gray-300 bg-white rounded-2xl">
             <Bell size={48} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-sm font-bold text-gray-700">Nenhuma notificação por enquanto</p>
-            <p className="text-xs text-gray-500 mt-1">Quando houver ocorrências, alertas ou atualizações, elas aparecerão aqui.</p>
+            <p className="text-sm font-bold text-gray-700">Nenhuma notificação enviada ainda</p>
+            <p className="text-xs text-gray-500 mt-1">As notificações enviadas aos moradores aparecerão aqui.</p>
           </div>
         </div>
       </main>
