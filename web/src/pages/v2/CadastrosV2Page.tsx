@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { api } from '../../api/client'
 import toast from 'react-hot-toast'
-import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle } from 'lucide-react'
+import { ArrowLeft, LogOut, Save, Plus, X, Loader2, MessageCircle, Library } from 'lucide-react'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
@@ -57,7 +57,12 @@ export default function CadastrosV2Page() {
       if (raw) {
         const importados = JSON.parse(raw) as Pergunta[]
         if (Array.isArray(importados) && importados.length > 0) {
-          setPerguntas(importados.map((p) => ({ texto: p.texto, itens: p.itens || {} })))
+          // Anexa às perguntas já existentes (ignora as vazias)
+          setPerguntas((atual) => {
+            const sigs = atual.filter((p) => p.texto.trim())
+            const novos = importados.map((p) => ({ texto: p.texto, itens: p.itens || {} }))
+            return sigs.length > 0 ? [...sigs, ...novos] : novos
+          })
           localStorage.removeItem('xv-import-personalizada')
           toast.success(`${importados.length} questão(ões) importadas da biblioteca`)
         }
@@ -249,13 +254,22 @@ export default function CadastrosV2Page() {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setPerguntas((prev) => [...prev, novaPergunta()])}
-              className="mt-4 flex items-center gap-2 text-sm font-bold text-brand-green hover:underline"
-            >
-              <Plus size={16} /> Adicionar pergunta
-            </button>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setPerguntas((prev) => [...prev, novaPergunta()])}
+                className="flex items-center gap-2 text-sm font-bold text-brand-green hover:underline"
+              >
+                <Plus size={16} /> Adicionar pergunta
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/x-vistoria/biblioteca?from=personalizada')}
+                className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-800"
+              >
+                <Library size={16} /> Importar da biblioteca
+              </button>
+            </div>
 
             <div className="mt-6 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <div className="flex-1">

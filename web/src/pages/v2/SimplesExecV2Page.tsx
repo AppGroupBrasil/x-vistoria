@@ -4,7 +4,7 @@ import { useAuth } from '../../store/auth'
 import toast from 'react-hot-toast'
 import {
   ArrowLeft, LogOut, Plus, X, Camera, Send, Loader2,
-  AlertTriangle, Star,
+  AlertTriangle, Star, Library,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { TIPOS } from './SimplesV2Page'
@@ -76,20 +76,36 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
   const [iniciadaEm] = useState(() => new Date().toISOString())
   const sair = () => { logout(); navigate('/login') }
 
+  // Restaura rascunho desta vistoria + aplica imports da biblioteca (append)
   useEffect(() => {
+    const rascunhoKey = `xv-rascunho-${tipo}`
+    const importKey = `xv-import-${tipo}`
+    let base: any[] = []
     try {
-      const key = `xv-import-${tipo}`
-      const raw = localStorage.getItem(key)
+      const raw = localStorage.getItem(rascunhoKey)
+      if (raw) base = JSON.parse(raw) ?? []
+    } catch { /* ignore */ }
+    try {
+      const raw = localStorage.getItem(importKey)
       if (raw) {
         const importados = JSON.parse(raw)
         if (Array.isArray(importados) && importados.length > 0) {
-          setItens(importados)
-          localStorage.removeItem(key)
+          base = [...base, ...importados]
+          localStorage.removeItem(importKey)
           toast.success(`${importados.length} item(ns) importados da biblioteca`)
         }
       }
     } catch { /* ignore */ }
+    if (base.length > 0) setItens(base)
   }, [tipo])
+
+  // Auto-save do rascunho a cada mudança
+  useEffect(() => {
+    try { localStorage.setItem(`xv-rascunho-${tipo}`, JSON.stringify(itens)) }
+    catch { /* ignore */ }
+  }, [tipo, itens])
+
+  const abrirBiblioteca = () => navigate(`/x-vistoria/biblioteca?from=${tipo}`)
 
   const adicionar = () => {
     const base = { id: uid() }
@@ -128,6 +144,7 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
         lat_fim: geoFim.lat, lng_fim: geoFim.lng,
       }
       const res: any = await api.post('/vistoria-simples', payload)
+      localStorage.removeItem(`xv-rascunho-${tipo}`)
       toast.success(`Vistoria enviada! Protocolo #${res.protocolo}`)
       navigate('/x-vistoria/historico')
     } catch (err: any) {
@@ -171,13 +188,22 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
             />
           ))}
 
-          <button
-            type="button"
-            onClick={adicionar}
-            className="w-full py-4 rounded-2xl border-2 border-dashed border-brand-green text-brand-green text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-50 active:scale-95"
-          >
-            <Plus size={18} /> Adicionar
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={adicionar}
+              className="py-4 rounded-2xl border-2 border-dashed border-brand-green text-brand-green text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-50 active:scale-95"
+            >
+              <Plus size={18} /> Adicionar
+            </button>
+            <button
+              type="button"
+              onClick={abrirBiblioteca}
+              className="py-4 rounded-2xl border-2 border-dashed border-gray-300 text-gray-600 text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-95"
+            >
+              <Library size={18} /> Da biblioteca
+            </button>
+          </div>
         </div>
       </main>
 

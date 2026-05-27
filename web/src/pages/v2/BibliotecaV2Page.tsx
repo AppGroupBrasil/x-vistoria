@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import toast from 'react-hot-toast'
 import { ArrowLeft, LogOut, Download, CheckSquare, Square } from 'lucide-react'
@@ -9,7 +9,14 @@ import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type Categori
 export default function BibliotecaV2Page() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [aba, setAba] = useState<CategoriaBib>('personalizada')
+  const [params] = useSearchParams()
+  const from = params.get('from') as CategoriaBib | null
+  const fromValido = from && CATEGORIAS.some((c) => c.key === from) ? from : null
+  const [aba, setAba] = useState<CategoriaBib>(fromValido || 'personalizada')
+
+  useEffect(() => {
+    if (fromValido) setAba(fromValido)
+  }, [fromValido])
   const [sel, setSel] = useState<Record<CategoriaBib, Set<string>>>(
     Object.fromEntries(CATEGORIAS.map((c) => [c.key, new Set<string>()])) as any,
   )
@@ -63,6 +70,11 @@ export default function BibliotecaV2Page() {
             <p className="text-gray-500 mt-1">
               Escolha o tipo de vistoria, marque o que precisa e clique em <strong>Importar</strong>. Vai pra tela da vistoria já preenchida.
             </p>
+            {fromValido && (
+              <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
+                <strong>Modo anexar:</strong> as questões marcadas serão adicionadas à vistoria que você já estava preenchendo.
+              </div>
+            )}
           </div>
 
           {/* Abas */}
