@@ -19,6 +19,7 @@ type Morador = {
 }
 
 const STORAGE = 'xv-moradores'
+const STORAGE_BLOCOS = 'xv-blocos'
 const uid = () => Math.random().toString(36).slice(2, 10)
 const carregar = (): Morador[] => {
   try { return JSON.parse(localStorage.getItem(STORAGE) || '[]') } catch { return [] }
@@ -56,6 +57,52 @@ export default function NotificacoesV2Page() {
 
   const [moradores, setMoradores] = useState<Morador[]>(carregar)
   const [condominios, setCondominios] = useState<CondominioCad[]>([])
+  const [blocos, setBlocos] = useState<Record<string, string[]>>(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_BLOCOS) || '{}') } catch { return {} }
+  })
+  const persistirBlocos = (next: Record<string, string[]>) => {
+    setBlocos(next)
+    localStorage.setItem(STORAGE_BLOCOS, JSON.stringify(next))
+  }
+
+  const [blocoCondId, setBlocoCondId] = useState<string>('')
+  const [blocoNome, setBlocoNome] = useState('')
+  const [blocoQtd, setBlocoQtd] = useState('')
+  const [blocoPrefixo, setBlocoPrefixo] = useState('Bloco ')
+
+  const blocosDoCond = blocoCondId ? (blocos[blocoCondId] || []) : []
+
+  const adicionarBlocoNomeado = () => {
+    if (!blocoCondId) return toast.error('Selecione o condomínio')
+    const nome = blocoNome.trim()
+    if (!nome) return
+    const atuais = blocos[blocoCondId] || []
+    if (atuais.includes(nome)) return toast.error('Esse bloco já existe')
+    persistirBlocos({ ...blocos, [blocoCondId]: [...atuais, nome] })
+    setBlocoNome('')
+  }
+
+  const cadastrarBlocosEmLote = () => {
+    if (!blocoCondId) return toast.error('Selecione o condomínio')
+    const n = parseInt(blocoQtd, 10)
+    if (!n || n < 1 || n > 999) return toast.error('Informe uma quantidade entre 1 e 999')
+    const prefixo = blocoPrefixo.trim() ? blocoPrefixo : ''
+    const atuais = blocos[blocoCondId] || []
+    const gerados: string[] = []
+    for (let i = 1; i <= n; i++) {
+      const nome = `${prefixo}${i}`.trim()
+      if (!atuais.includes(nome)) gerados.push(nome)
+    }
+    if (gerados.length === 0) return toast('Todos os blocos já existem', { icon: 'ℹ️' })
+    persistirBlocos({ ...blocos, [blocoCondId]: [...atuais, ...gerados] })
+    setBlocoQtd('')
+    toast.success(`${gerados.length} bloco(s) cadastrado(s)`)
+  }
+
+  const excluirBloco = (nome: string) => {
+    const atuais = blocos[blocoCondId] || []
+    persistirBlocos({ ...blocos, [blocoCondId]: atuais.filter((b) => b !== nome) })
+  }
   const persistir = (lista: Morador[]) => {
     setMoradores(lista)
     localStorage.setItem(STORAGE, JSON.stringify(lista))
@@ -176,6 +223,105 @@ export default function NotificacoesV2Page() {
             </div>
           </div>
 
+          {/* Blocos por condomínio */}
+          <section className="p-5 rounded-2xl border-2 border-gray-200 bg-white">
+            <h2 className="text-lg font-bold text-brand-navy">Blocos do condomínio</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Cadastre os blocos em lote por quantidade (ex.: 10 blocos numerados) ou nomeie cada um manualmente.
+            </p>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select
+                className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white sm:col-span-2"
+                value={blocoCondId}
+                onChange={(e) => setBlocoCondId(e.target.value)}
+              >
+                <option value="">{condominios.length === 0 ? 'Nenhum condomínio cadastrado' : 'Selecione o condomínio'}</option>
+                {condominios.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Em lote */}
+              <div className="p-3 rounded-xl border-2 border-gray-100 bg-gray-50">
+                <p className="text-xs font-bold text-gray-700 mb-2">Cadastro em lote (numerado)</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={blocoPrefixo}
+                    onChange={(e) => setBlocoPrefixo(e.target.value)}
+                    placeholder="Prefixo (ex.: Bloco )"
+                    className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={blocoQtd}
+                    onChange={(e) => setBlocoQtd(e.target.value)}
+                    placeholder="Qtd"
+                    className="w-24 px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  />
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Gera: <span className="font-mono">{blocoPrefixo}1, {blocoPrefixo}2, …</span>
+                </p>
+                <button
+                  onClick={cadastrarBlocosEmLote}
+                  disabled={!blocoCondId || !blocoQtd}
+                  className="mt-2 w-full px-4 py-2 rounded-xl bg-brand-navy text-white text-sm font-bold inline-flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50"
+                >
+                  <Plus size={14} /> Cadastrar em lote
+                </button>
+              </div>
+
+              {/* Manual */}
+              <div className="p-3 rounded-xl border-2 border-gray-100 bg-gray-50">
+                <p className="text-xs font-bold text-gray-700 mb-2">Cadastro livre (nome)</p>
+                <input
+                  type="text"
+                  value={blocoNome}
+                  onChange={(e) => setBlocoNome(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') adicionarBlocoNomeado() }}
+                  placeholder="Ex.: Torre Sul, Bloco Jasmim…"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">Use quando o bloco tem nome em vez de número.</p>
+                <button
+                  onClick={adicionarBlocoNomeado}
+                  disabled={!blocoCondId || !blocoNome.trim()}
+                  className="mt-2 w-full px-4 py-2 rounded-xl bg-brand-green text-white text-sm font-bold inline-flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50"
+                >
+                  <Plus size={14} /> Adicionar bloco
+                </button>
+              </div>
+            </div>
+
+            {blocoCondId && (
+              <div className="mt-4">
+                <p className="text-xs font-bold text-gray-700 mb-2">
+                  Blocos cadastrados ({blocosDoCond.length})
+                </p>
+                {blocosDoCond.length === 0 ? (
+                  <p className="text-xs text-gray-500">Nenhum bloco cadastrado para este condomínio.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {blocosDoCond.map((b) => (
+                      <span key={b} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs text-gray-700">
+                        {b}
+                        <button onClick={() => excluirBloco(b)} className="text-gray-400 hover:text-red-500" aria-label={`Excluir ${b}`}>
+                          <Trash2 size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
           {/* Cadastro por lote */}
           <section className="p-5 rounded-2xl border-2 border-gray-200 bg-white">
             <h2 className="text-lg font-bold text-brand-navy">Cadastro por lote (planilha CSV)</h2>
@@ -246,8 +392,20 @@ export default function NotificacoesV2Page() {
                   <option key={c.id} value={c.id}>{c.nome}</option>
                 ))}
               </select>
-              <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
-                placeholder="Bloco" value={form.bloco} onChange={(e) => setCampo('bloco', e.target.value)} />
+              <div>
+                <input
+                  list="blocos-cadastrados"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
+                  placeholder="Bloco"
+                  value={form.bloco}
+                  onChange={(e) => setCampo('bloco', e.target.value)}
+                />
+                <datalist id="blocos-cadastrados">
+                  {(form.condominio_id ? (blocos[form.condominio_id] || []) : []).map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </div>
               <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
                 placeholder="Apartamento" value={form.apartamento} onChange={(e) => setCampo('apartamento', e.target.value)} />
               <input className="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
