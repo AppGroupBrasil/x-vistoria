@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
-import { LogOut, UserPlus, Zap, History, Bell, Activity } from 'lucide-react'
+import { LogOut, UserPlus, Zap, History, Bell, Activity, CloudOff, Cloud, Loader2 } from 'lucide-react'
+import { aoMudarStatus, sincronizar, type StatusSync } from '../../lib/offlineQueue'
 
 type Passo = { topo?: string; titulo?: string; icon: any; to?: string; key: string; rolesOnly?: string[] }
 
@@ -17,6 +19,10 @@ const ROLES_VEM_TUDO = new Set(['master', 'admin', 'supervisor', 'sindico'])
 export default function HomeV2Page() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  const [sync, setSync] = useState<StatusSync | null>(null)
+  useEffect(() => aoMudarStatus(setSync), [])
+  const pendentes = (sync?.fotosPendentes || 0) + (sync?.vistoriasPendentes || 0)
 
   const veTudo = user?.role && ROLES_VEM_TUDO.has(user.role)
   const base = veTudo
@@ -36,13 +42,30 @@ export default function HomeV2Page() {
             <div className="text-white/60 text-[11px]">Olá, {user?.nome?.split(' ')[0]}</div>
           </div>
         </div>
-        <button
-          onClick={sair}
-          className="p-2 rounded-lg hover:bg-white/10 text-white/70"
-          aria-label="Sair"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          {pendentes > 0 && (
+            <button
+              onClick={() => sincronizar()}
+              title="Sincronizar agora"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-100 text-xs font-bold hover:bg-amber-500/30"
+            >
+              {sync?.sincronizando ? <Loader2 size={12} className="animate-spin" /> : <CloudOff size={12} />}
+              {pendentes} pendente{pendentes > 1 ? 's' : ''}
+            </button>
+          )}
+          {pendentes === 0 && sync && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-100 text-xs font-bold" title="Tudo sincronizado">
+              <Cloud size={12} /> Sincronizado
+            </span>
+          )}
+          <button
+            onClick={sair}
+            className="p-2 rounded-lg hover:bg-white/10 text-white/70"
+            aria-label="Sair"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 px-6 py-12 flex flex-col items-center">

@@ -13,6 +13,7 @@ import GeoGate from '../../components/GeoGate'
 import { api } from '../../api/client'
 import { obterLocalizacao } from '../../lib/geo'
 import { compactarImagem } from '../../lib/compactarImagem'
+import { adicionarFotoOffline, enfileirarVistoria } from '../../lib/offlineQueue'
 
 const TIPO_API: Record<string, string> = {
   'foto-descricao': 'foto_descricao',
@@ -45,10 +46,19 @@ const uid = () => Math.random().toString(36).slice(2, 10)
 
 async function uploadFoto(file: File): Promise<Foto> {
   const compactado = await compactarImagem(file)
-  const fd = new FormData()
-  fd.append('file', compactado, compactado.name)
-  const res: any = await api.post('/upload/avulso', fd)
-  return { id: uid(), url: res.url, nome: compactado.name }
+  if (!navigator.onLine) {
+    const off = await adicionarFotoOffline(compactado, compactado.name)
+    return { id: off.id, url: off.url, nome: compactado.name }
+  }
+  try {
+    const fd = new FormData()
+    fd.append('file', compactado, compactado.name)
+    const res: any = await api.post('/upload/avulso', fd)
+    return { id: uid(), url: res.url, nome: compactado.name }
+  } catch {
+    const off = await adicionarFotoOffline(compactado, compactado.name)
+    return { id: off.id, url: off.url, nome: compactado.name }
+  }
 }
 
 function lerGeoSessao(): { lat: number; lng: number } | null {
@@ -172,13 +182,46 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
         condominio_nome: condominioNome.trim() || undefined,
         endereco: endereco.trim() || undefined,
       }
-      const res: any = await api.post('/vistoria-simples', payload)
-      localStorage.removeItem(`xv-rascunho-${tipo}`)
-      localStorage.removeItem(`xv-cond-${tipo}`)
-      localStorage.removeItem(`xv-end-${tipo}`)
-      try { sessionStorage.removeItem('xv-geo-inicio') } catch {}
-      toast.success(`Vistoria enviada! Protocolo #${res.protocolo}`)
-      navigate('/x-vistoria/historico')
+      const fotosLocaisIds: string[] = []
+      const colherIds = (obj: any) => {
+        if (Array.isArray(obj)) obj.forEach(colherIds)
+        else if (obj && typeof obj === 'object') {
+          if (typeof obj.id === 'string' && obj.id.startsWith('off_')) fotosLocaisIds.push(obj.id.slice(4))
+          Object.values(obj).forEach(colherIds)
+        }
+      }
+      colherIds(itens)
+
+      const limparRascunho = () => {
+        localStorage.removeItem(`xv-rascunho-${tipo}`)
+        localStorage.removeItem(`xv-cond-${tipo}`)
+        localStorage.removeItem(`xv-end-${tipo}`)
+        try { sessionStorage.removeItem('xv-geo-inicio') } catch {}
+      }
+
+      if (!navigator.onLine || fotosLocaisIds.length > 0) {
+        await enfileirarVistoria('/vistoria-simples', payload, fotosLocaisIds)
+        limparRascunho()
+        toast.success('Sem conexão — vistoria salva para envio quando reconectar')
+        navigate('/x-vistoria/historico')
+        return
+      }
+      try {
+        const res: any = await api.post('/vistoria-simples', payload)
+        limparRascunho()
+        toast.success(`Vistoria enviada! Protocolo #${res.protocolo}`)
+        navigate('/x-vistoria/historico')
+      } catch (err: any) {
+        // erro de rede → enfileira
+        if (err?.message === 'Network Error' || !navigator.onLine) {
+          await enfileirarVistoria('/vistoria-simples', payload, fotosLocaisIds)
+          limparRascunho()
+          toast.success('Sem conexão — vistoria salva para envio quando reconectar')
+          navigate('/x-vistoria/historico')
+        } else {
+          toast.error(err?.erro || 'Erro ao enviar vistoria')
+        }
+      }
     } catch (err: any) {
       toast.error(err?.erro || 'Erro ao enviar vistoria')
     } finally { setSalvando(false) }
