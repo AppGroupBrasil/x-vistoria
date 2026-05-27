@@ -137,10 +137,25 @@ export default function NotificacoesV2Page() {
   }
 
   const [notifMoradorId, setNotifMoradorId] = useState('')
+  const [notifCondId, setNotifCondId] = useState('')
   const [notifTitulo, setNotifTitulo] = useState('')
   const [notifDesc, setNotifDesc] = useState('')
   const [notifImgs, setNotifImgs] = useState<NotifImg[]>([])
   const [enviandoImg, setEnviandoImg] = useState(false)
+
+  useEffect(() => {
+    if (condominios.length === 1) setNotifCondId(condominios[0].id)
+  }, [condominios])
+
+  const moradoresFiltrados = notifCondId
+    ? moradores.filter((m) => m.condominio_id === notifCondId)
+    : moradores
+
+  useEffect(() => {
+    if (notifMoradorId && !moradoresFiltrados.some((m) => m.id === notifMoradorId)) {
+      setNotifMoradorId('')
+    }
+  }, [notifCondId, moradoresFiltrados, notifMoradorId])
 
   const uploadImg = async (file: File) => {
     setEnviandoImg(true)
@@ -300,15 +315,38 @@ export default function NotificacoesV2Page() {
             <p className="text-sm text-gray-600 mt-1">Compose o aviso e envie via e-mail, WhatsApp ou ambos.</p>
 
             <div className="mt-4 space-y-3">
+              {condominios.length > 1 && (
+                <select
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
+                  value={notifCondId}
+                  onChange={(e) => setNotifCondId(e.target.value)}
+                >
+                  <option value="">Selecione o condomínio</option>
+                  {condominios.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nome}</option>
+                  ))}
+                </select>
+              )}
+              {condominios.length === 1 && (
+                <div className="text-xs text-gray-500 px-1">Condomínio: <strong>{condominios[0].nome}</strong></div>
+              )}
+
               <select
                 className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none bg-white"
                 value={notifMoradorId}
                 onChange={(e) => setNotifMoradorId(e.target.value)}
+                disabled={condominios.length > 1 && !notifCondId}
               >
-                <option value="">{moradores.length === 0 ? 'Nenhum morador cadastrado' : 'Selecione o morador destinatário'}</option>
-                {moradores.map((m) => (
+                <option value="">
+                  {condominios.length > 1 && !notifCondId
+                    ? 'Selecione antes o condomínio'
+                    : moradoresFiltrados.length === 0
+                      ? 'Nenhum morador neste condomínio'
+                      : 'Selecione o morador destinatário'}
+                </option>
+                {moradoresFiltrados.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.nome} — {m.condominio}{m.bloco ? ` Bl.${m.bloco}` : ''}{m.apartamento ? ` Ap.${m.apartamento}` : ''}
+                    {m.nome} — {m.bloco ? `Bl.${m.bloco} ` : ''}{m.apartamento ? `Ap.${m.apartamento}` : ''}
                   </option>
                 ))}
               </select>
