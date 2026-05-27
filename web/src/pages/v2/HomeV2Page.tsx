@@ -2,18 +2,25 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
 import { LogOut, UserPlus, Zap, History, Bell } from 'lucide-react'
 
-type Passo = { topo?: string; titulo?: string; icon: any; to?: string }
+type Passo = { topo?: string; titulo?: string; icon: any; to?: string; key: string }
 
 const PASSOS: Passo[] = [
-  { titulo: 'Cadastros', icon: UserPlus, to: '/x-vistoria/cadastros' },
-  { titulo: 'Vistoria', icon: Zap, to: '/x-vistoria/simples' },
-  { titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
-  { titulo: 'Notificações', icon: Bell, to: '/x-vistoria/notificacoes' },
+  { key: 'cadastros',    titulo: 'Cadastros', icon: UserPlus, to: '/x-vistoria/cadastros' },
+  { key: 'vistoria',     titulo: 'Vistoria', icon: Zap, to: '/x-vistoria/simples' },
+  { key: 'historico',    titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
+  { key: 'notificacoes', titulo: 'Notificações', icon: Bell, to: '/x-vistoria/notificacoes' },
 ]
+
+const ROLES_VEM_TUDO = new Set(['master', 'admin', 'supervisor', 'sindico'])
 
 export default function HomeV2Page() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  const veTudo = user?.role && ROLES_VEM_TUDO.has(user.role)
+  const permitidos = veTudo
+    ? PASSOS
+    : PASSOS.filter((p) => (user?.permissoes || []).includes(p.key))
 
   const sair = () => { logout(); navigate('/login') }
 
@@ -45,7 +52,12 @@ export default function HomeV2Page() {
         </p>
 
         <div className="mt-12 w-full max-w-6xl grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {PASSOS.map((p, i) => {
+          {permitidos.length === 0 && (
+            <p className="col-span-full text-center text-gray-500 text-sm">
+              Nenhuma função liberada. Peça ao seu síndico ou administradora para habilitar suas permissões.
+            </p>
+          )}
+          {permitidos.map((p, i) => {
             const Icon = p.icon
             return (
               <div key={i} className="flex flex-col items-center">

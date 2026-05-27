@@ -114,15 +114,35 @@ export default function CadastrosV2Page() {
   const [salvandoPerfil, setSalvandoPerfil] = useState(false)
 
   const ehMaster = user?.role === 'master'
-  type UsuarioRow = { id: string; nome: string; email: string; role: string; ativo: boolean }
+  type UsuarioRow = { id: string; nome: string; email: string; role: string; ativo: boolean; permissoes: string[] }
   const [usuariosLista, setUsuariosLista] = useState<UsuarioRow[]>([])
   useEffect(() => {
-    if (!ehMaster) return
+    if (!podeCadastrarPerfil) return
     api.get('/usuarios').then((r: any) => setUsuariosLista(r as UsuarioRow[])).catch(() => {})
-  }, [ehMaster])
+  }, [podeCadastrarPerfil])
 
   const recarregarUsuarios = () => {
     api.get('/usuarios').then((r: any) => setUsuariosLista(r as UsuarioRow[])).catch(() => {})
+  }
+
+  const PERMISSOES_DISPONIVEIS = [
+    { key: 'cadastros',    label: 'Cadastros' },
+    { key: 'vistoria',     label: 'Vistoria' },
+    { key: 'historico',    label: 'Histórico' },
+    { key: 'biblioteca',   label: 'Biblioteca' },
+    { key: 'notificacoes', label: 'Notificações' },
+  ]
+
+  const togglePermissao = async (u: UsuarioRow, key: string) => {
+    const tem = u.permissoes.includes(key)
+    const novas = tem ? u.permissoes.filter((p) => p !== key) : [...u.permissoes, key]
+    setUsuariosLista((prev) => prev.map((x) => x.id === u.id ? { ...x, permissoes: novas } : x))
+    try {
+      await api.patch(`/usuarios/${u.id}`, { permissoes: novas })
+    } catch (e: any) {
+      toast.error(e?.erro || 'Erro ao salvar permissão')
+      setUsuariosLista((prev) => prev.map((x) => x.id === u.id ? { ...x, permissoes: u.permissoes } : x))
+    }
   }
 
   const cadastrarPerfil = async () => {
@@ -213,20 +233,46 @@ export default function CadastrosV2Page() {
                 {salvandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <User size={16} />} Cadastrar perfil
               </button>
 
-              {ehMaster && usuariosLista.length > 0 && (
-                <div className="mt-5">
-                  <p className="text-xs font-bold text-gray-700 mb-2">Todos os usuários ({usuariosLista.length})</p>
-                  <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                    {usuariosLista.map((u) => (
-                      <div key={u.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white border border-gray-200">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-bold text-gray-800 truncate">{u.nome}</div>
-                          <div className="text-[11px] text-gray-500 truncate">{u.email}</div>
+              {usuariosLista.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-bold text-gray-800 mb-1">Permissões dos usuários</p>
+                  <p className="text-xs text-gray-600 mb-3">Marque quais funções cada usuário poderá acessar. As mudanças são salvas automaticamente.</p>
+                  <div className="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
+                    {usuariosLista
+                      .filter((u) => ehMaster ? true : (u.role === 'supervisor' || u.role === 'vistoriador'))
+                      .map((u) => (
+                        <div key={u.id} className="p-3 rounded-xl bg-white border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-bold text-gray-800 truncate">{u.nome}</div>
+                              <div className="text-[11px] text-gray-500 truncate">{u.email}</div>
+                            </div>
+                            <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                              {u.role === 'vistoriador' ? 'Funcionário' : u.role}
+                            </span>
+                            <span className={`text-[10px] font-bold ${u.ativo ? 'text-emerald-600' : 'text-gray-400'}`}>{u.ativo ? '●' : '○'}</span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                            {PERMISSOES_DISPONIVEIS.map((p) => {
+                              const ativa = u.permissoes.includes(p.key)
+                              return (
+                                <label key={p.key} className={clsx(
+                                  'flex items-center gap-1.5 px-2 py-1.5 rounded-lg border cursor-pointer text-xs',
+                                  ativa ? 'border-brand-green bg-emerald-50' : 'border-gray-200 bg-white',
+                                )}>
+                                  <input
+                                    type="checkbox"
+                                    checked={ativa}
+                                    onChange={() => togglePermissao(u, p.key)}
+                                    className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                                  />
+                                  <span className="font-medium text-gray-800">{p.label}</span>
+                                </label>
+                              )
+                            })}
+                          </div>
                         </div>
-                        <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{u.role}</span>
-                        <span className={`text-[10px] font-bold ${u.ativo ? 'text-emerald-600' : 'text-gray-400'}`}>{u.ativo ? '●' : '○'}</span>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}

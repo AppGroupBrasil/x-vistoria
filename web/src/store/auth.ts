@@ -10,6 +10,7 @@ interface User {
   empresa_id: string
   empresa_nome: string
   avatar_url?: string
+  permissoes?: string[]
 }
 
 interface AuthState {

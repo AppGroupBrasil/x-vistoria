@@ -41,6 +41,7 @@ export default async function authRoutes(app: FastifyInstance) {
         role: user.role,
         empresa_id: user.empresaId,
         empresa_nome: user.empresa.nome,
+        permissoes: user.permissoes || [],
       },
     }
   })
@@ -68,7 +69,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const token = app.jwt.sign({ sub: user.id, empresa_id: empresa.id, role: user.role })
     return reply.code(201).send({
       access_token: token,
-      usuario: { id: user.id, nome, email: user.email, role: user.role, empresa_id: empresa.id, empresa_nome: empresa.nome },
+      usuario: { id: user.id, nome, email: user.email, role: user.role, empresa_id: empresa.id, empresa_nome: empresa.nome, permissoes: [] },
     })
   })
 
@@ -81,6 +82,7 @@ export default async function authRoutes(app: FastifyInstance) {
     return {
       id: u.id, nome: u.nome, email: u.email, role: u.role,
       empresa_id: u.empresaId, empresa_nome: u.empresa.nome,
+      permissoes: u.permissoes || [],
     }
   })
 }
