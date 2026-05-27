@@ -374,7 +374,7 @@ export default function CadastrosV2Page() {
             {!carregandoQO && !passo2Habilitado && (
               <div className="card p-6 text-center border-2 border-amber-200 bg-amber-50 rounded-2xl">
                 <p className="text-sm text-amber-800 font-medium">
-                  Cadastre mais de um funcionário ou mais de um condomínio para habilitar esta etapa.
+                  Para vincular um funcionário a um condomínio, basta cadastrar mais de um funcionário ou mais de um condomínio.
                 </p>
               </div>
             )}
