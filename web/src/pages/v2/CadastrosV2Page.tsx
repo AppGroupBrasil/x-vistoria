@@ -61,7 +61,7 @@ export default function CadastrosV2Page() {
     } finally { setSalvandoQO(false) }
   }
 
-  const passo2Habilitado = funcionariosCad.length > 1
+  const passo2Habilitado = funcionariosCad.length > 1 || condominiosCad.length > 1
 
   const sair = () => { logout(); navigate('/login') }
 
