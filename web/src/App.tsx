@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './store/auth'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ConfirmProvider } from './components/ConfirmDialog'
+import WhatsAppFab from './components/WhatsAppFab'
 import LoginPage from './pages/LoginPage'
 
 // Lazy-loaded pages (code-splitting)
@@ -152,6 +153,7 @@ export default function App() {
       <Route path="/" element={<Navigate to="/x-vistoria" replace />} />
       <Route path="*" element={<Navigate to="/x-vistoria" replace />} />
     </Routes>
+    <WhatsAppFab />
     </Suspense>
     </ConfirmProvider>
     </ErrorBoundary>
