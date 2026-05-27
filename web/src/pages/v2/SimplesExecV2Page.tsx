@@ -304,25 +304,66 @@ function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; on
 }
 
 function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Partial<ItemBase>) => void }) {
-  const [aberto, setAberto] = useState(!!item.ocFoto || !!item.ocDescricao)
+  const [aberto, setAberto] = useState(false)
+  const temOcorrencia = !!item.ocFoto || !!(item.ocDescricao && item.ocDescricao.trim())
   return (
     <>
       <button
         type="button"
-        onClick={() => setAberto((v) => !v)}
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold shadow-md shadow-red-500/30 hover:bg-red-700 active:scale-95"
+        onClick={() => setAberto(true)}
+        className={clsx(
+          'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold shadow-md active:scale-95',
+          temOcorrencia
+            ? 'bg-red-700 text-white shadow-red-500/40 ring-2 ring-red-300'
+            : 'bg-red-600 text-white shadow-red-500/30 hover:bg-red-700',
+        )}
       >
-        <AlertTriangle size={14} /> {aberto ? 'Ocultar ocorrência' : 'Adicionar ocorrência'}
+        <AlertTriangle size={14} /> {temOcorrencia ? 'Ocorrência registrada' : 'Reportar ocorrência'}
       </button>
       {aberto && (
-        <div className="basis-full w-full mt-2 space-y-2">
-          <FotoInput value={item.ocFoto ?? null} onChange={(f) => onPatch({ ocFoto: f })} label="Foto da ocorrência" />
-          <textarea
-            placeholder="Descrição da ocorrência"
-            value={item.ocDescricao || ''}
-            onChange={(e) => onPatch({ ocDescricao: e.target.value })}
-            className="input text-sm resize-none" rows={2}
-          />
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setAberto(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-red-600" />
+                <h3 className="text-base font-bold text-gray-800">Ocorrência</h3>
+              </div>
+              <button onClick={() => setAberto(false)} className="text-gray-400 hover:text-gray-600 p-1" aria-label="Fechar">
+                <X size={18} />
+              </button>
+            </div>
+            <FotoInput value={item.ocFoto ?? null} onChange={(f) => onPatch({ ocFoto: f })} label="Foto da ocorrência" />
+            <textarea
+              placeholder="Descrição da ocorrência"
+              value={item.ocDescricao || ''}
+              onChange={(e) => onPatch({ ocDescricao: e.target.value })}
+              className="input text-sm resize-none w-full" rows={4}
+            />
+            <div className="flex gap-2 justify-end">
+              {temOcorrencia && (
+                <button
+                  type="button"
+                  onClick={() => { onPatch({ ocFoto: null, ocDescricao: '' }); setAberto(false) }}
+                  className="px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Limpar
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setAberto(false)}
+                className="px-4 py-2 rounded-lg bg-brand-navy text-white text-sm font-bold active:scale-95"
+              >
+                Concluir
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
