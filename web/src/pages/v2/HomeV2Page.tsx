@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/auth'
-import { LogOut, UserPlus, UsersRound, Zap, ClipboardList, CheckCircle } from 'lucide-react'
+import { LogOut, UserPlus, UsersRound, Zap, History, CheckCircle } from 'lucide-react'
 
 type Passo = { topo?: string; titulo?: string; icon: any; to?: string }
 
@@ -8,7 +8,7 @@ const PASSOS: Passo[] = [
   { topo: 'Primeiro passo', titulo: 'Cadastros', icon: UserPlus, to: '/x-vistoria/cadastros' },
   { topo: 'Segundo passo', titulo: 'Quem e Onde', icon: UsersRound, to: '/x-vistoria/quem-e-onde' },
   { topo: 'Terceiro passo', titulo: 'Vistoria simples', icon: Zap, to: '/x-vistoria/simples' },
-  { topo: 'Quarto passo', icon: ClipboardList },
+  { topo: 'Quarto passo', titulo: 'Histórico', icon: History, to: '/x-vistoria/historico' },
   { topo: 'Quinto passo', icon: CheckCircle },
 ]
 

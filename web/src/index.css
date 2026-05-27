@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@media print {
+  body { background: white !important; }
+  .no-print { display: none !important; }
+  .a4-page { box-shadow: none !important; max-width: 100% !important; min-height: 0 !important; padding: 0 !important; }
+  @page { size: A4; margin: 12mm; }
+}
+
 @layer base {
   * { @apply antialiased; }
   body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }

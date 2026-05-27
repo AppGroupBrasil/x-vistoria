@@ -41,6 +41,9 @@ const CadastrosV2Page = lazy(() => import('./pages/v2/CadastrosV2Page'))
 const QuemOndeV2Page = lazy(() => import('./pages/v2/QuemOndeV2Page'))
 const SimplesV2Page = lazy(() => import('./pages/v2/SimplesV2Page'))
 const SimplesExecV2Page = lazy(() => import('./pages/v2/SimplesExecV2Page'))
+const HistoricoV2Page = lazy(() => import('./pages/v2/HistoricoV2Page'))
+const HistoricoDetailV2Page = lazy(() => import('./pages/v2/HistoricoDetailV2Page'))
+const VisitaPublicaPage = lazy(() => import('./pages/v2/VisitaPublicaPage'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -97,6 +100,24 @@ export default function App() {
           </RequireAuth>
         }
       />
+      <Route
+        path="/x-vistoria/historico"
+        element={
+          <RequireAuth>
+            <HistoricoV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/historico/:id"
+        element={
+          <RequireAuth>
+            <HistoricoDetailV2Page />
+          </RequireAuth>
+        }
+      />
+      {/* Página pública apontada pelo QR Code */}
+      <Route path="/v/:id" element={<VisitaPublicaPage />} />
 
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />

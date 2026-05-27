@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "visitas" ADD COLUMN     "lat_fim" DOUBLE PRECISION,
+ADD COLUMN     "lat_inicio" DOUBLE PRECISION,
+ADD COLUMN     "lng_fim" DOUBLE PRECISION,
+ADD COLUMN     "lng_inicio" DOUBLE PRECISION;
