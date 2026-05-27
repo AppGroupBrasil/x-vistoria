@@ -11,6 +11,7 @@ import { TIPOS } from './SimplesV2Page'
 import GeoGate from '../../components/GeoGate'
 import { api } from '../../api/client'
 import { obterLocalizacao } from '../../lib/geo'
+import { compactarImagem } from '../../lib/compactarImagem'
 
 const TIPO_API: Record<string, string> = {
   'foto-descricao': 'foto_descricao',
@@ -39,13 +40,12 @@ interface AvaliacaoItem extends ItemBase { item: string; nota: number }
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-function lerFoto(file: File): Promise<Foto> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve({ id: uid(), url: String(reader.result), nome: file.name })
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+async function uploadFoto(file: File): Promise<Foto> {
+  const compactado = await compactarImagem(file)
+  const fd = new FormData()
+  fd.append('file', compactado, compactado.name)
+  const res: any = await api.post('/upload/avulso', fd)
+  return { id: uid(), url: res.url, nome: compactado.name }
 }
 
 function lerGeoSessao(): { lat: number; lng: number } | null {
@@ -269,6 +269,7 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
 }
 
 function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; onChange: (f: Foto | null) => void; label?: string }) {
+  const [enviando, setEnviando] = useState(false)
   return (
     <div>
       {value ? (
@@ -279,13 +280,21 @@ function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; on
           </button>
         </div>
       ) : (
-        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 text-gray-500 text-xs font-medium cursor-pointer hover:bg-gray-100">
-          <Camera size={14} /> {label}
-          <input type="file" accept="image/*" capture="environment" className="hidden"
+        <label className={clsx(
+          'inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 text-gray-500 text-xs font-medium hover:bg-gray-100',
+          enviando ? 'opacity-60 cursor-wait' : 'cursor-pointer',
+        )}>
+          {enviando ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+          {enviando ? 'Enviando…' : label}
+          <input type="file" accept="image/*" capture="environment" className="hidden" disabled={enviando}
             onChange={async (e) => {
               const f = e.target.files?.[0]
-              if (f) onChange(await lerFoto(f))
               e.target.value = ''
+              if (!f) return
+              setEnviando(true)
+              try { onChange(await uploadFoto(f)) }
+              catch (err: any) { toast.error(err?.erro || 'Falha no upload da foto') }
+              finally { setEnviando(false) }
             }}
           />
         </label>

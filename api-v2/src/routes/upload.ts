@@ -67,6 +67,25 @@ export default async function uploadRoutes(app: FastifyInstance) {
     })
   })
 
+  // Upload avulso (sem vinculo com Visita) — usado pela Vistoria Simples
+  app.post('/upload/avulso', async (req, reply) => {
+    const parts = req.parts()
+    let fileBuffer: Buffer | null = null
+    let fileName = ''
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        fileBuffer = await part.toBuffer()
+        fileName = part.filename
+      }
+    }
+    if (!fileBuffer) return reply.code(400).send({ erro: 'arquivo obrigatório' })
+    const ext = (path.extname(fileName) || '.jpg').toLowerCase()
+    const novoNome = `${randomUUID()}${ext}`
+    const destino = path.join(UPLOAD_DIR, novoNome)
+    await writeFile(destino, fileBuffer)
+    return reply.code(201).send({ url: `${PUBLIC_URL}/uploads/${novoNome}` })
+  })
+
   app.delete('/upload/fotos/:id', async (req, reply) => {
     const { id } = req.params as { id: string }
     const f = await prisma.foto.findFirst({
