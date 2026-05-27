@@ -19,6 +19,7 @@ import { compactarImagem } from '../lib/compactarImagem'
 type Resultado = 'ok' | 'nao_ok' | 'na' | null
 type Status = 'aberto' | 'em_execucao' | 'finalizado' | null
 type Limpeza = 'ruim' | 'regular' | 'boa' | 'otima' | null
+type Conservacao = 'ruim' | 'regular' | 'bom' | 'otimo' | null
 
 interface Resposta {
   id?: string
@@ -31,6 +32,11 @@ interface Resposta {
   ocorrencia?: string
   notificacao?: string
   limpeza?: Limpeza
+  conservacao?: Conservacao
+  validade?: string
+  local_exato?: string
+  assinatura?: string
+  prazo?: string
 }
 
 const STATUS_OPCOES: { v: Status; l: string }[] = [
@@ -44,6 +50,13 @@ const LIMPEZA_OPCOES: { v: Limpeza; l: string; cor: string }[] = [
   { v: 'regular', l: 'Regular', cor: 'bg-yellow-500' },
   { v: 'boa', l: 'Boa', cor: 'bg-emerald-500' },
   { v: 'otima', l: 'Ótima', cor: 'bg-green-600' },
+]
+
+const CONSERVACAO_OPCOES: { v: Conservacao; l: string; cor: string }[] = [
+  { v: 'ruim', l: 'Ruim', cor: 'bg-red-500' },
+  { v: 'regular', l: 'Regular', cor: 'bg-yellow-500' },
+  { v: 'bom', l: 'Bom', cor: 'bg-emerald-500' },
+  { v: 'otimo', l: 'Ótimo', cor: 'bg-green-600' },
 ]
 
 export default function ChecklistPage() {
@@ -90,6 +103,11 @@ export default function ChecklistPage() {
           titulo: r.titulo || '', descricao: r.descricao || '', status: r.status || null,
           problema: r.problema || '', ocorrencia: r.ocorrencia || '', notificacao: r.notificacao || '',
           limpeza: r.limpeza || null,
+          conservacao: r.conservacao || null,
+          validade: r.validade ? String(r.validade).slice(0, 10) : '',
+          local_exato: r.local_exato || '',
+          assinatura: r.assinatura || '',
+          prazo: r.prazo ? String(r.prazo).slice(0, 10) : '',
         }
       })
       setRespostas(map)
@@ -131,6 +149,11 @@ export default function ChecklistPage() {
       ocorrencia: merged.ocorrencia || undefined,
       notificacao: merged.notificacao || undefined,
       limpeza: merged.limpeza || undefined,
+      conservacao: merged.conservacao || undefined,
+      validade: merged.validade ? new Date(merged.validade).toISOString() : undefined,
+      local_exato: merged.local_exato || undefined,
+      assinatura: merged.assinatura || undefined,
+      prazo: merged.prazo ? new Date(merged.prazo).toISOString() : undefined,
     }
     setRespostas((prev) => ({ ...prev, [perguntaId]: { ...(prev[perguntaId] || { resultado: null, observacao: '' }), ...body, resultado: body.resultado } as Resposta }))
     try { await api.post('/checklist/respostas', body) }
@@ -363,6 +386,57 @@ export default function ChecklistPage() {
                         ))}
                       </div>
                     </div>
+                  )}
+                  {p.requer_conservacao && (
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-500 mb-1">Conservação</div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {CONSERVACAO_OPCOES.map((s) => (
+                          <button
+                            key={s.v}
+                            onClick={() => { setCampo('conservacao', s.v); setTimeout(persistir, 0) }}
+                            className={clsx('py-2 rounded-lg text-xs font-bold',
+                              r.conservacao === s.v ? `${s.cor} text-white` : 'bg-gray-50 text-gray-600 border border-gray-200')}
+                          >
+                            {s.l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {p.requer_validade && (
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-500 mb-1">Validade</div>
+                      <input
+                        type="date" value={r.validade || ''}
+                        onChange={(e) => setCampo('validade', e.target.value)} onBlur={persistir}
+                        className="input text-sm"
+                      />
+                    </div>
+                  )}
+                  {p.requer_local_exato && (
+                    <input
+                      type="text" placeholder="Local exato (ex.: garagem 2 - pilar 5)"
+                      value={r.local_exato || ''} onChange={(e) => setCampo('local_exato', e.target.value)} onBlur={persistir}
+                      className="input text-sm"
+                    />
+                  )}
+                  {p.requer_prazo && (
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-500 mb-1">Prazo para resolver</div>
+                      <input
+                        type="date" value={r.prazo || ''}
+                        onChange={(e) => setCampo('prazo', e.target.value)} onBlur={persistir}
+                        className="input text-sm"
+                      />
+                    </div>
+                  )}
+                  {p.requer_assinatura && (
+                    <input
+                      type="text" placeholder="Nome de quem assina (ex.: João - síndico)"
+                      value={r.assinatura || ''} onChange={(e) => setCampo('assinatura', e.target.value)} onBlur={persistir}
+                      className="input text-sm"
+                    />
                   )}
 
                   {/* Ações de apoio: foto (se requer) + pendência (sempre disponível) */}

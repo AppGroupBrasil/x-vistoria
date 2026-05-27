@@ -7,27 +7,37 @@ import { ArrowLeft, LogOut, Save, Plus, X, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
 
 const ITEM_KEY: Record<string, string> = {
-  'Foto': 'requer_foto',
-  'Descrição': 'requer_descricao',
+  'Assinatura': 'requer_assinatura',
   'Campo de resposta': 'requer_titulo',
-  'Status (Aberto / Em execução / Finalizado)': 'requer_status',
-  'Problema': 'requer_problema',
-  'Ocorrência': 'requer_ocorrencia',
-  'Notificação': 'requer_notificacao',
+  'Conservação (Ruim / Regular / Bom / Ótimo)': 'requer_conservacao',
+  'Descrição': 'requer_descricao',
+  'Foto': 'requer_foto',
   'Limpeza (Ruim / Regular / Boa / Ótima)': 'requer_limpeza',
+  'Local exato': 'requer_local_exato',
+  'Notificação': 'requer_notificacao',
+  'Ocorrência': 'requer_ocorrencia',
+  'Prazo para resolver': 'requer_prazo',
+  'Problema': 'requer_problema',
+  'Status (Aberto / Em execução / Finalizado)': 'requer_status',
+  'Validade': 'requer_validade',
 }
 
 const PERIODICIDADES = ['Diária', 'Semanal', 'Quinzenal', 'Mensal'] as const
 
 const ITENS_VISTORIA = [
-  'Foto',
-  'Descrição',
+  'Assinatura',
   'Campo de resposta',
-  'Status (Aberto / Em execução / Finalizado)',
-  'Problema',
-  'Ocorrência',
-  'Notificação',
+  'Conservação (Ruim / Regular / Bom / Ótimo)',
+  'Descrição',
+  'Foto',
   'Limpeza (Ruim / Regular / Boa / Ótima)',
+  'Local exato',
+  'Notificação',
+  'Ocorrência',
+  'Prazo para resolver',
+  'Problema',
+  'Status (Aberto / Em execução / Finalizado)',
+  'Validade',
 ] as const
 
 export default function CadastrosV2Page() {

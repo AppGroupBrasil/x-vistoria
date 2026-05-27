@@ -14,6 +14,11 @@ const respostaSchema = z.object({
   ocorrencia: z.string().optional(),
   notificacao: z.string().optional(),
   limpeza: z.enum(['ruim', 'regular', 'boa', 'otima']).optional(),
+  conservacao: z.enum(['ruim', 'regular', 'bom', 'otimo']).optional(),
+  validade: z.string().datetime().optional().or(z.literal('').transform(() => undefined)),
+  local_exato: z.string().optional(),
+  assinatura: z.string().optional(),
+  prazo: z.string().datetime().optional().or(z.literal('').transform(() => undefined)),
 })
 
 function formatarPergunta(p: any) {
@@ -30,6 +35,11 @@ function formatarPergunta(p: any) {
     requer_ocorrencia: p.requerOcorrencia,
     requer_notificacao: p.requerNotificacao,
     requer_limpeza: p.requerLimpeza,
+    requer_conservacao: p.requerConservacao,
+    requer_validade: p.requerValidade,
+    requer_local_exato: p.requerLocalExato,
+    requer_assinatura: p.requerAssinatura,
+    requer_prazo: p.requerPrazo,
   }
 }
 
@@ -98,6 +108,11 @@ export default async function checklistRoutes(app: FastifyInstance) {
       titulo: d.titulo, descricao: d.descricao, status: d.status,
       problema: d.problema, ocorrencia: d.ocorrencia, notificacao: d.notificacao,
       limpeza: d.limpeza,
+      conservacao: d.conservacao,
+      validade: d.validade ? new Date(d.validade) : undefined,
+      localExato: d.local_exato,
+      assinatura: d.assinatura,
+      prazo: d.prazo ? new Date(d.prazo) : undefined,
     }
     const r = await prisma.resposta.upsert({
       where: { visitaId_perguntaId: { visitaId: d.visita_id, perguntaId: d.pergunta_id } },

@@ -57,6 +57,13 @@ enum NivelLimpeza {
   otima
 }
 
+enum NivelConservacao {
+  ruim
+  regular
+  bom
+  otimo
+}
+
 model Empresa {
   id           String       @id @default(uuid())
   nome         String
@@ -139,6 +146,11 @@ model Pergunta {
   requerOcorrencia   Boolean @default(false) @map("requer_ocorrencia")
   requerNotificacao  Boolean @default(false) @map("requer_notificacao")
   requerLimpeza      Boolean @default(false) @map("requer_limpeza")
+  requerConservacao  Boolean @default(false) @map("requer_conservacao")
+  requerValidade     Boolean @default(false) @map("requer_validade")
+  requerLocalExato   Boolean @default(false) @map("requer_local_exato")
+  requerAssinatura   Boolean @default(false) @map("requer_assinatura")
+  requerPrazo        Boolean @default(false) @map("requer_prazo")
   templates   TemplatePergunta[]
   respostas   Resposta[]
 
@@ -215,7 +227,12 @@ model Resposta {
   problema    String?
   ocorrencia  String?
   notificacao String?
-  limpeza     NivelLimpeza?
+  limpeza      NivelLimpeza?
+  conservacao  NivelConservacao?
+  validade     DateTime?
+  localExato   String?   @map("local_exato")
+  assinatura   String?
+  prazo        DateTime?
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
   @@unique([visitaId, perguntaId])
