@@ -8,16 +8,10 @@ const PIXEL_GIF = Buffer.from(
 
 function clienteEmailDeUA(ua: string): string {
   const u = ua.toLowerCase()
-  if (u.includes('googleimageproxy')) return 'Gmail (proxy)'
-  if (u.includes('yahoomailproxy')) return 'Yahoo Mail (proxy)'
-  if (u.includes('mail.com')) return 'Mail.com'
+  if (u.includes('googleimageproxy')) return 'Gmail'
+  if (u.includes('yahoomailproxy')) return 'Yahoo Mail'
   if (u.includes('outlook')) return 'Outlook'
   if (u.includes('thunderbird')) return 'Thunderbird'
-  if (u.includes('applewebkit') && u.includes('mobile') && (u.includes('iphone') || u.includes('ipad'))) {
-    if (u.includes('gmail')) return 'Gmail no iPhone/iPad'
-    return 'Apple Mail (iPhone/iPad)'
-  }
-  if (u.includes('macintosh') && u.includes('applewebkit')) return 'Apple Mail (Mac)'
   if (u.includes('android')) {
     if (u.includes('gmail')) return 'Gmail Android'
     return 'Android'

@@ -73,7 +73,7 @@ export default function SimplesDetailV2Page() {
               const url = `${window.location.origin}/assinar/${r.token}`
               await navigator.clipboard.writeText(url).catch(() => {})
               toast.success('Link de assinatura copiado para a área de transferência')
-              window.open(`https://wa.me/?text=${encodeURIComponent(`Para assinar a vistoria, acesse: ${url}`)}`, '_blank')
+              window.open(`https://wa.me/5511933284364?text=${encodeURIComponent(`Para assinar a vistoria, acesse: ${url}`)}`, '_blank')
             } catch (e: any) { toast.error(e?.erro || 'Erro ao gerar link') }
           }} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 no-print">
             <FileSignature size={16} /> Solicitar assinatura

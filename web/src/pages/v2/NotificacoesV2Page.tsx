@@ -516,6 +516,9 @@ export default function NotificacoesV2Page() {
           {historico.length > 0 && (
             <section>
               <h2 className="text-lg font-bold text-brand-navy mb-3">Notificações enviadas ({historico.length})</h2>
+              <p className="text-[11px] text-gray-500 mb-3 -mt-2">
+                A abertura do e-mail só é detectada se o morador carregar as imagens. "Aguardando" não significa que ele não leu — apenas que ainda não confirmou a abertura.
+              </p>
               <div className="space-y-2">
                 {historico.slice(0, 20).map((n) => (
                   <div key={n.id} className="p-3 rounded-xl border-2 border-gray-200 bg-white">
