@@ -1,0 +1,326 @@
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../../store/auth'
+import toast from 'react-hot-toast'
+import {
+  ArrowLeft, LogOut, Plus, X, Camera, Send, Loader2,
+  AlertTriangle, Star,
+} from 'lucide-react'
+import clsx from 'clsx'
+import { TIPOS } from './SimplesV2Page'
+
+type Foto = { id: string; url: string; nome: string }
+
+interface ItemBase {
+  id: string
+  // Ocorrência (sempre opcional)
+  ocFoto?: Foto | null
+  ocDescricao?: string
+}
+
+interface FotoDescItem extends ItemBase { foto: Foto | null; descricao: string }
+interface ChecklistItem extends ItemBase { nome: string; problemaAberto: boolean; problemaFoto: Foto | null; problemaDesc: string }
+interface PerguntaRespItem extends ItemBase { pergunta: string; resposta: string; foto: Foto | null }
+interface ConformidadeItem extends ItemBase { item: string; conforme: 'sim' | 'nao' | null }
+interface AntesDepoisItem extends ItemBase { antes: Foto | null; depois: Foto | null; descricao: string }
+interface AvaliacaoItem extends ItemBase { item: string; nota: number }
+
+const uid = () => Math.random().toString(36).slice(2, 10)
+
+function lerFoto(file: File): Promise<Foto> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve({ id: uid(), url: String(reader.result), nome: file.name })
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+export default function SimplesExecV2Page() {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const { tipo } = useParams<{ tipo: string }>()
+  const def = TIPOS.find((t) => t.key === tipo)
+
+  const [itens, setItens] = useState<any[]>([])
+  const [salvando, setSalvando] = useState(false)
+
+  const sair = () => { logout(); navigate('/login') }
+
+  if (!def) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Tipo desconhecido. <button onClick={() => navigate('/x-vistoria/simples')} className="ml-2 text-brand-green underline">Voltar</button>
+      </div>
+    )
+  }
+
+  const adicionar = () => {
+    const base = { id: uid() }
+    let novo: any
+    switch (tipo) {
+      case 'foto-descricao':   novo = { ...base, foto: null, descricao: '' } as FotoDescItem; break
+      case 'checklist':        novo = { ...base, nome: '', problemaAberto: false, problemaFoto: null, problemaDesc: '' } as ChecklistItem; break
+      case 'pergunta-resposta':novo = { ...base, pergunta: '', resposta: '', foto: null } as PerguntaRespItem; break
+      case 'conformidade':     novo = { ...base, item: '', conforme: null } as ConformidadeItem; break
+      case 'antes-depois':     novo = { ...base, antes: null, depois: null, descricao: '' } as AntesDepoisItem; break
+      case 'avaliacao':        novo = { ...base, item: '', nota: 0 } as AvaliacaoItem; break
+      default: return
+    }
+    setItens((prev) => [...prev, novo])
+  }
+
+  const atualizar = (id: string, patch: any) =>
+    setItens((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)))
+  const remover = (id: string) => setItens((prev) => prev.filter((it) => it.id !== id))
+
+  const enviar = async () => {
+    if (itens.length === 0) return toast.error('Adicione pelo menos um item')
+    setSalvando(true)
+    try {
+      // TODO: salvar no backend
+      await new Promise((r) => setTimeout(r, 500))
+      toast.success('Vistoria enviada!')
+      navigate('/x-vistoria')
+    } finally { setSalvando(false) }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-28">
+      <header className="bg-brand-navy text-white px-6 py-4 flex items-center justify-between shadow sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/x-vistoria/simples')} className="p-2 rounded-lg hover:bg-white/10 text-white/70" aria-label="Voltar">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <div className="font-bold text-base leading-tight">{def.titulo}</div>
+            <div className="text-white/60 text-[11px]">Olá, {user?.nome?.split(' ')[0]}</div>
+          </div>
+        </div>
+        <button onClick={sair} className="p-2 rounded-lg hover:bg-white/10 text-white/70" aria-label="Sair">
+          <LogOut size={18} />
+        </button>
+      </header>
+
+      <main className="flex-1 px-4 py-6 flex justify-center">
+        <div className="w-full max-w-2xl space-y-3">
+          {itens.length === 0 && (
+            <div className="card p-8 text-center text-sm text-gray-500">
+              Nenhum item ainda. Toque em <strong>+ Adicionar</strong> abaixo.
+            </div>
+          )}
+
+          {itens.map((it, idx) => (
+            <ItemCard
+              key={it.id}
+              tipo={tipo!}
+              item={it}
+              idx={idx}
+              onPatch={(patch) => atualizar(it.id, patch)}
+              onRemove={() => remover(it.id)}
+            />
+          ))}
+
+          <button
+            type="button"
+            onClick={adicionar}
+            className="w-full py-4 rounded-2xl border-2 border-dashed border-brand-green text-brand-green text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-50 active:scale-95"
+          >
+            <Plus size={18} /> Adicionar
+          </button>
+        </div>
+      </main>
+
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
+        <div className="max-w-2xl mx-auto flex items-center gap-3">
+          <div className="flex-1 text-xs text-gray-500">{itens.length} item(ns)</div>
+          <button
+            onClick={enviar}
+            disabled={salvando || itens.length === 0}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 bg-brand-green text-white active:scale-95 disabled:opacity-50"
+          >
+            {salvando ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Salvar e enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; onChange: (f: Foto | null) => void; label?: string }) {
+  return (
+    <div>
+      {value ? (
+        <div className="relative inline-block">
+          <img src={value.url} alt="" className="w-24 h-24 object-cover rounded-lg" />
+          <button onClick={() => onChange(null)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5">
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 text-gray-500 text-xs font-medium cursor-pointer hover:bg-gray-100">
+          <Camera size={14} /> {label}
+          <input type="file" accept="image/*" capture="environment" className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0]
+              if (f) onChange(await lerFoto(f))
+              e.target.value = ''
+            }}
+          />
+        </label>
+      )}
+    </div>
+  )
+}
+
+function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Partial<ItemBase>) => void }) {
+  const [aberto, setAberto] = useState(!!item.ocFoto || !!item.ocDescricao)
+  return (
+    <div className="border-t border-gray-100 pt-2 mt-2">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className="text-xs font-bold text-gray-500 hover:text-gray-700 flex items-center gap-1"
+      >
+        <AlertTriangle size={12} /> {aberto ? 'Ocultar ocorrência' : 'Anexar ocorrência (opcional)'}
+      </button>
+      {aberto && (
+        <div className="mt-2 space-y-2">
+          <FotoInput value={item.ocFoto ?? null} onChange={(f) => onPatch({ ocFoto: f })} label="Foto da ocorrência" />
+          <textarea
+            placeholder="Descrição da ocorrência"
+            value={item.ocDescricao || ''}
+            onChange={(e) => onPatch({ ocDescricao: e.target.value })}
+            className="input text-sm resize-none" rows={2}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
+  tipo: string; item: any; idx: number; onPatch: (p: any) => void; onRemove: () => void
+}) {
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-xs font-bold text-gray-400">#{idx + 1}</div>
+        <button onClick={onRemove} className="text-gray-400 hover:text-red-500 p-1" aria-label="Remover"><X size={16} /></button>
+      </div>
+
+      {/* Conteúdo principal por tipo */}
+      {tipo === 'foto-descricao' && (
+        <>
+          <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} />
+          <textarea placeholder="Descrição" rows={2}
+            value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
+            className="input text-sm resize-none" />
+        </>
+      )}
+
+      {tipo === 'checklist' && (
+        <>
+          <div className="flex items-center gap-2">
+            <input type="text" placeholder="Item do checklist"
+              value={item.nome} onChange={(e) => onPatch({ nome: e.target.value })}
+              className="input text-sm flex-1" />
+            <button
+              type="button"
+              onClick={() => onPatch({ problemaAberto: !item.problemaAberto })}
+              className={clsx('p-2 rounded-lg',
+                item.problemaAberto || item.problemaFoto || item.problemaDesc
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'bg-gray-100 text-gray-400 hover:text-orange-500')}
+              aria-label="Marcar problema"
+            >
+              <AlertTriangle size={18} />
+            </button>
+          </div>
+          {item.problemaAberto && (
+            <div className="rounded-xl bg-orange-50 border border-orange-200 p-3 space-y-2">
+              <div className="text-[11px] font-bold text-orange-700">Problema identificado</div>
+              <FotoInput value={item.problemaFoto} onChange={(f) => onPatch({ problemaFoto: f })} />
+              <textarea placeholder="Descrever problema" rows={2}
+                value={item.problemaDesc} onChange={(e) => onPatch({ problemaDesc: e.target.value })}
+                className="input text-sm resize-none" />
+            </div>
+          )}
+        </>
+      )}
+
+      {tipo === 'pergunta-resposta' && (
+        <>
+          <input type="text" placeholder="Pergunta"
+            value={item.pergunta} onChange={(e) => onPatch({ pergunta: e.target.value })}
+            className="input text-sm" />
+          <textarea placeholder="Resposta" rows={2}
+            value={item.resposta} onChange={(e) => onPatch({ resposta: e.target.value })}
+            className="input text-sm resize-none" />
+          <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} label="Foto (opcional)" />
+        </>
+      )}
+
+      {tipo === 'conformidade' && (
+        <>
+          <input type="text" placeholder="Item a verificar"
+            value={item.item} onChange={(e) => onPatch({ item: e.target.value })}
+            className="input text-sm" />
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => onPatch({ conforme: 'sim' })}
+              className={clsx('py-3 rounded-xl text-sm font-bold',
+                item.conforme === 'sim' ? 'bg-green-500 text-white' : 'bg-white border-2 border-gray-200 text-gray-600')}
+            >
+              ✓ Conforme
+            </button>
+            <button
+              type="button"
+              onClick={() => onPatch({ conforme: 'nao' })}
+              className={clsx('py-3 rounded-xl text-sm font-bold',
+                item.conforme === 'nao' ? 'bg-red-500 text-white' : 'bg-white border-2 border-gray-200 text-gray-600')}
+            >
+              ✗ Não conforme
+            </button>
+          </div>
+        </>
+      )}
+
+      {tipo === 'antes-depois' && (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <div className="text-[11px] font-bold text-gray-500 mb-1">Antes</div>
+              <FotoInput value={item.antes} onChange={(f) => onPatch({ antes: f })} label="Antes" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-gray-500 mb-1">Depois</div>
+              <FotoInput value={item.depois} onChange={(f) => onPatch({ depois: f })} label="Depois" />
+            </div>
+          </div>
+          <textarea placeholder="Descrição" rows={2}
+            value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
+            className="input text-sm resize-none" />
+        </>
+      )}
+
+      {tipo === 'avaliacao' && (
+        <>
+          <input type="text" placeholder="Item avaliado"
+            value={item.item} onChange={(e) => onPatch({ item: e.target.value })}
+            className="input text-sm" />
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" onClick={() => onPatch({ nota: item.nota === n ? 0 : n })} className="p-1">
+                <Star size={28} className={item.nota >= n ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <OcorrenciaToggle item={item} onPatch={onPatch} />
+    </div>
+  )
+}

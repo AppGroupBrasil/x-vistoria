@@ -39,6 +39,8 @@ const AtividadesPage = lazy(() => import('./pages/admin/AtividadesPage'))
 const HomeV2Page = lazy(() => import('./pages/v2/HomeV2Page'))
 const CadastrosV2Page = lazy(() => import('./pages/v2/CadastrosV2Page'))
 const QuemOndeV2Page = lazy(() => import('./pages/v2/QuemOndeV2Page'))
+const SimplesV2Page = lazy(() => import('./pages/v2/SimplesV2Page'))
+const SimplesExecV2Page = lazy(() => import('./pages/v2/SimplesExecV2Page'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -76,6 +78,22 @@ export default function App() {
         element={
           <RequireAuth>
             <QuemOndeV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/simples"
+        element={
+          <RequireAuth>
+            <SimplesV2Page />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/x-vistoria/simples/:tipo"
+        element={
+          <RequireAuth>
+            <SimplesExecV2Page />
           </RequireAuth>
         }
       />
