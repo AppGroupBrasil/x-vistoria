@@ -454,7 +454,7 @@ export default function QuestionarioPage() {
           <div className="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-4">
             <User size={32} className="text-white/80" />
           </div>
-          <h1 className="text-xl font-bold">Identificação do Vistoriador</h1>
+          <h1 className="text-xl font-bold">Identificação do Funcionário</h1>
           <p className="text-white/50 text-sm mt-1">Registre sua presença antes de iniciar</p>
         </div>
 

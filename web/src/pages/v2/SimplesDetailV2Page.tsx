@@ -99,7 +99,7 @@ export default function SimplesDetailV2Page() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm mb-6">
-            <Info icon={<User size={14} />} label="Vistoriador" value={v.vistoriador_nome} />
+            <Info icon={<User size={14} />} label="Funcionário" value={v.vistoriador_nome} />
             <Info icon={<Clock size={14} />} label="Duração" value={duracao(v.iniciada_em, v.finalizada_em)} />
             <Info icon={<Clock size={14} />} label="Início" value={fmt(v.iniciada_em)} />
             <Info icon={<CheckCircle size={14} />} label="Fim" value={fmt(v.finalizada_em)} />

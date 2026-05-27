@@ -140,7 +140,7 @@ export default function HistoricoDetailV2Page() {
 
           {/* Bloco de informações */}
           <div className="grid grid-cols-2 gap-4 text-sm mb-6">
-            <InfoLinha icon={<User size={14} />} label="Vistoriador" value={v.vistoriador_nome} />
+            <InfoLinha icon={<User size={14} />} label="Funcionário" value={v.vistoriador_nome} />
             <InfoLinha icon={<Building2 size={14} />} label="Modelo" value={v.template_nome || '—'} />
             <InfoLinha icon={<Clock size={14} />} label="Início" value={fmt(v.iniciada_em)} />
             <InfoLinha icon={<CheckCircle size={14} />} label="Fim" value={fmt(v.finalizada_em)} />

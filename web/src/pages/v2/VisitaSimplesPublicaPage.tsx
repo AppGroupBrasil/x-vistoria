@@ -56,7 +56,7 @@ export default function VisitaSimplesPublicaPage() {
         </div>
         <div className="grid grid-cols-2 gap-3 text-xs mb-5">
           <div><div className="text-gray-500 font-bold uppercase text-[9px]">Tipo</div><div>{v.tipo_label}</div></div>
-          <div><div className="text-gray-500 font-bold uppercase text-[9px]">Vistoriador</div><div>{v.vistoriador_nome || '—'}</div></div>
+          <div><div className="text-gray-500 font-bold uppercase text-[9px]">Funcionário</div><div>{v.vistoriador_nome || '—'}</div></div>
           <div className="flex items-center gap-1"><Clock size={11} className="text-gray-400" /> Início: {fmt(v.iniciada_em)}</div>
           <div className="flex items-center gap-1"><CheckCircle size={11} className="text-gray-400" /> Fim: {fmt(v.finalizada_em)}</div>
         </div>

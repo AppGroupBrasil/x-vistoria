@@ -119,7 +119,7 @@ export default function HistoricoV2Page() {
                       <span className="flex items-center gap-1"><Calendar size={10} /> {fmt(it.criado_em)}</span>
                       {it.iniciada_em && <span className="flex items-center gap-1"><Clock size={10} /> Início {fmt(it.iniciada_em)}</span>}
                       {it.finalizada_em && <span className="flex items-center gap-1"><CheckCircle size={10} /> Fim {fmt(it.finalizada_em)}</span>}
-                      <span>Vistoriador: {it.vistoriador_nome}</span>
+                      <span>Funcionário: {it.vistoriador_nome}</span>
                       <span>#{it.protocolo}</span>
                     </div>
                   </div>
