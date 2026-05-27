@@ -6,6 +6,22 @@ import { ArrowLeft, LogOut, Download, CheckSquare, Square, MessageCircle } from 
 import clsx from 'clsx'
 import { BIBLIOTECA, CATEGORIAS, STORAGE_KEY, destinoURL, toItens, type CategoriaBib } from '../../data/biblioteca'
 
+const ITENS_PERSONALIZADA = [
+  'Assinatura',
+  'Campo de resposta',
+  'Conservação (Ruim / Regular / Bom / Ótimo)',
+  'Descrição',
+  'Foto',
+  'Limpeza (Ruim / Regular / Boa / Ótima)',
+  'Local exato',
+  'Notificação',
+  'Ocorrência',
+  'Prazo para resolver',
+  'Problema',
+  'Status (Aberto / Em execução / Finalizado)',
+  'Validade',
+] as const
+
 export default function BibliotecaV2Page() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -20,6 +36,14 @@ export default function BibliotecaV2Page() {
   const [sel, setSel] = useState<Record<CategoriaBib, Set<string>>>(
     Object.fromEntries(CATEGORIAS.map((c) => [c.key, new Set<string>()])) as any,
   )
+  const [itensPers, setItensPers] = useState<Record<string, Record<string, boolean>>>({})
+
+  const toggleItemPers = (questao: string, item: string) => {
+    setItensPers((prev) => {
+      const cur = prev[questao] || {}
+      return { ...prev, [questao]: { ...cur, [item]: !cur[item] } }
+    })
+  }
 
   const sair = () => { logout(); navigate('/login') }
   const lista = BIBLIOTECA[aba]
@@ -39,7 +63,9 @@ export default function BibliotecaV2Page() {
   const importar = () => {
     if (selAtual.size === 0) return toast.error('Marque pelo menos uma questão')
     const textos = lista.filter((t) => selAtual.has(t))
-    const itens = toItens(aba, textos)
+    const itens = aba === 'personalizada'
+      ? textos.map((t) => ({ texto: t, itens: itensPers[t] || {} }))
+      : toItens(aba, textos)
     localStorage.setItem(STORAGE_KEY(aba), JSON.stringify(itens))
     toast.success(`${textos.length} questão(ões) importada(s)`)
     navigate(destinoURL(aba))
@@ -130,22 +156,50 @@ export default function BibliotecaV2Page() {
           <div className="space-y-1.5">
             {lista.map((t) => {
               const marcada = selAtual.has(t)
+              const itensDaQuestao = itensPers[t] || {}
               return (
-                <label
+                <div
                   key={t}
                   className={clsx(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all',
-                    marcada
-                      ? 'border-brand-green bg-emerald-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300',
+                    'rounded-xl border-2 transition-all',
+                    marcada ? 'border-brand-green bg-emerald-50' : 'border-gray-200 bg-white hover:border-gray-300',
                   )}
                 >
-                  {marcada
-                    ? <CheckSquare size={18} className="text-brand-green flex-shrink-0" />
-                    : <Square size={18} className="text-gray-300 flex-shrink-0" />}
-                  <input type="checkbox" checked={marcada} onChange={() => toggle(t)} className="sr-only" />
-                  <span className="text-sm text-gray-800">{t}</span>
-                </label>
+                  <label className="flex items-center gap-3 px-4 py-3 cursor-pointer">
+                    {marcada
+                      ? <CheckSquare size={18} className="text-brand-green flex-shrink-0" />
+                      : <Square size={18} className="text-gray-300 flex-shrink-0" />}
+                    <input type="checkbox" checked={marcada} onChange={() => toggle(t)} className="sr-only" />
+                    <span className="text-sm text-gray-800">{t}</span>
+                  </label>
+
+                  {aba === 'personalizada' && marcada && (
+                    <div className="px-4 pb-3 pt-1 border-t border-emerald-200">
+                      <p className="text-[11px] font-bold text-gray-600 mb-2">Itens desta questão</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        {ITENS_PERSONALIZADA.map((it) => (
+                          <label
+                            key={it}
+                            className={clsx(
+                              'flex items-center gap-2 px-2.5 py-1.5 rounded-lg border cursor-pointer text-xs',
+                              itensDaQuestao[it]
+                                ? 'border-brand-green bg-white'
+                                : 'border-gray-200 bg-white hover:border-gray-300',
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={!!itensDaQuestao[it]}
+                              onChange={() => toggleItemPers(t, it)}
+                              className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                            />
+                            <span className="font-medium text-gray-800">{it}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
