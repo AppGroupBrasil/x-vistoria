@@ -69,7 +69,6 @@ export default function CadastrosV2Page() {
       }
     } catch { /* ignore */ }
   }, [])
-  const [salvarModelo, setSalvarModelo] = useState<'sim' | 'nao' | ''>('')
   const [nomeModelo, setNomeModelo] = useState('')
 
   const sair = () => { logout(); navigate('/login') }
@@ -86,7 +85,6 @@ export default function CadastrosV2Page() {
     if (!condominio.trim()) return toast.error('Informe o nome do condomínio')
     if (!funcionario.trim()) return toast.error('Informe o nome do funcionário')
     if (perguntas.every((p) => !p.texto.trim())) return toast.error('Adicione pelo menos uma pergunta')
-    if (salvarModelo === 'sim' && !nomeModelo.trim()) return toast.error('Dê um nome ao modelo')
 
     setSalvando(true)
     try {
@@ -94,7 +92,7 @@ export default function CadastrosV2Page() {
         condominio_nome: condominio.trim(),
         funcionario_nome: funcionario.trim(),
         periodicidade: periodicidade || undefined,
-        salvar_modelo: salvarModelo === 'sim',
+        salvar_modelo: !!nomeModelo.trim(),
         nome_modelo: nomeModelo.trim() || undefined,
         perguntas: perguntas
           .filter((p) => p.texto.trim())
@@ -289,62 +287,28 @@ export default function CadastrosV2Page() {
             </div>
           </div>
 
-          {/* 5. Salvar modelo */}
+          {/* 5. Salvar */}
           <div>
-            <div className="block text-base font-bold text-gray-800 mb-2">
-              Salvar esse modelo de vistoria para reutilização?
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => { setSalvarModelo('sim'); handleSalvar() }}
-                className={clsx(
-                  'py-3 rounded-xl border-2 text-base font-bold transition-all active:scale-95',
-                  salvarModelo === 'sim'
-                    ? 'bg-brand-green border-brand-green text-white'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-brand-green',
-                )}
-              >
-                Sim
-              </button>
-              <button
-                type="button"
-                onClick={() => { setSalvarModelo('nao'); handleSalvar() }}
-                className={clsx(
-                  'py-3 rounded-xl border-2 text-base font-bold transition-all active:scale-95',
-                  salvarModelo === 'nao'
-                    ? 'bg-gray-700 border-gray-700 text-white'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400',
-                )}
-              >
-                Não
-              </button>
-            </div>
-
-            {salvarModelo === 'sim' && (
-              <div className="mt-4 p-4 rounded-xl bg-emerald-50 border-2 border-brand-green space-y-3">
-                <label htmlFor="nome-modelo" className="block text-sm font-bold text-gray-800">
-                  Dê um nome a este modelo
-                </label>
-                <input
-                  id="nome-modelo"
-                  type="text"
-                  value={nomeModelo}
-                  onChange={(e) => setNomeModelo(e.target.value)}
-                  placeholder="Ex.: Vistoria mensal padrão"
-                  autoFocus
-                  className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleSalvar}
-                  disabled={!nomeModelo.trim() || salvando}
-                  className="w-full py-3 rounded-xl bg-brand-navy text-white text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-                >
-                  {salvando ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Salvar modelo
-                </button>
-              </div>
-            )}
+            <label htmlFor="nome-modelo" className="block text-base font-bold text-gray-800 mb-2">
+              Salvar como modelo reutilizável (opcional)
+            </label>
+            <p className="text-xs text-gray-500 mb-2">Dê um nome para reaproveitar este modelo depois. Deixe vazio se não quiser salvar.</p>
+            <input
+              id="nome-modelo"
+              type="text"
+              value={nomeModelo}
+              onChange={(e) => setNomeModelo(e.target.value)}
+              placeholder="Ex.: Vistoria mensal padrão"
+              className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-brand-green focus:outline-none mb-4"
+            />
+            <button
+              type="button"
+              onClick={handleSalvar}
+              disabled={salvando}
+              className="w-full py-4 rounded-2xl bg-brand-navy text-white text-base font-bold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+            >
+              {salvando ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar vistoria
+            </button>
           </div>
         </div>
       </main>

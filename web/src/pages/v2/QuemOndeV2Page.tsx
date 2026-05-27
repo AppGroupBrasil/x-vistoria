@@ -117,25 +117,22 @@ export default function QuemOndeV2Page() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {funcionarios.map((f) => {
                       const ativo = selFunc === f.id
-                      const desabilitado = !!selFunc && !ativo
                       return (
                         <label
                           key={f.id}
                           className={clsx(
-                            'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all',
+                            'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer',
                             ativo
-                              ? 'border-brand-green bg-emerald-50 cursor-pointer'
-                              : desabilitado
-                                ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                                : 'border-gray-200 bg-white hover:border-gray-300 cursor-pointer',
+                              ? 'border-brand-green bg-emerald-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300',
                           )}
                         >
                           <input
-                            type="checkbox"
+                            type="radio"
+                            name="funcionario"
                             checked={ativo}
-                            onChange={() => setSelFunc(ativo ? '' : f.id)}
-                            disabled={desabilitado}
-                            className="h-5 w-5 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                            onChange={() => setSelFunc(f.id)}
+                            className="h-5 w-5 border-gray-300 text-brand-green focus:ring-brand-green"
                           />
                           <User size={18} className="text-gray-400" />
                           <span className="text-sm font-medium text-gray-800">{f.nome}</span>

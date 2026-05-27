@@ -46,6 +46,7 @@ const HistoricoDetailV2Page = lazy(() => import('./pages/v2/HistoricoDetailV2Pag
 const VisitaPublicaPage = lazy(() => import('./pages/v2/VisitaPublicaPage'))
 const SimplesDetailV2Page = lazy(() => import('./pages/v2/SimplesDetailV2Page'))
 const BibliotecaV2Page = lazy(() => import('./pages/v2/BibliotecaV2Page'))
+const VisitaSimplesPublicaPage = lazy(() => import('./pages/v2/VisitaSimplesPublicaPage'))
 
 function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth()
@@ -136,6 +137,7 @@ export default function App() {
       />
       {/* Página pública apontada pelo QR Code */}
       <Route path="/v/:id" element={<VisitaPublicaPage />} />
+      <Route path="/v/simples/:id" element={<VisitaSimplesPublicaPage />} />
 
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />

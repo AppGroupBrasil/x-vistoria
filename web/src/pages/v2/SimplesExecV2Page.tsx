@@ -48,6 +48,17 @@ function lerFoto(file: File): Promise<Foto> {
   })
 }
 
+function lerGeoSessao(): { lat: number; lng: number } | null {
+  try {
+    const raw = sessionStorage.getItem('xv-geo-inicio')
+    if (!raw) return null
+    const d = JSON.parse(raw)
+    if (typeof d?.lat !== 'number' || typeof d?.lng !== 'number') return null
+    if (Date.now() - (d.ts || 0) > 10 * 60 * 1000) return null
+    return { lat: d.lat, lng: d.lng }
+  } catch { return null }
+}
+
 export default function SimplesExecV2Page() {
   const { tipo } = useParams<{ tipo: string }>()
   const navigate = useNavigate()
@@ -60,6 +71,9 @@ export default function SimplesExecV2Page() {
       </div>
     )
   }
+
+  const geoCache = lerGeoSessao()
+  if (geoCache) return <ExecConteudo tipo={tipo!} def={def} geoInicio={geoCache} />
 
   return (
     <GeoGate voltarPara="/x-vistoria/simples">
@@ -74,6 +88,12 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
   const [itens, setItens] = useState<any[]>([])
   const [salvando, setSalvando] = useState(false)
   const [iniciadaEm] = useState(() => new Date().toISOString())
+  const [condominioNome, setCondominioNome] = useState(() => {
+    try { return localStorage.getItem(`xv-cond-${tipo}`) || '' } catch { return '' }
+  })
+  const [endereco, setEndereco] = useState(() => {
+    try { return localStorage.getItem(`xv-end-${tipo}`) || '' } catch { return '' }
+  })
   const sair = () => { logout(); navigate('/login') }
 
   // Restaura rascunho desta vistoria + aplica imports da biblioteca (append)
@@ -104,6 +124,9 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
     try { localStorage.setItem(`xv-rascunho-${tipo}`, JSON.stringify(itens)) }
     catch { /* ignore */ }
   }, [tipo, itens])
+
+  useEffect(() => { try { localStorage.setItem(`xv-cond-${tipo}`, condominioNome) } catch {} }, [tipo, condominioNome])
+  useEffect(() => { try { localStorage.setItem(`xv-end-${tipo}`, endereco) } catch {} }, [tipo, endereco])
 
   const abrirBiblioteca = () => navigate(`/x-vistoria/biblioteca?from=${tipo}`)
 
@@ -142,9 +165,14 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
         finalizada_em: new Date().toISOString(),
         lat_inicio: geoInicio.lat, lng_inicio: geoInicio.lng,
         lat_fim: geoFim.lat, lng_fim: geoFim.lng,
+        condominio_nome: condominioNome.trim() || undefined,
+        endereco: endereco.trim() || undefined,
       }
       const res: any = await api.post('/vistoria-simples', payload)
       localStorage.removeItem(`xv-rascunho-${tipo}`)
+      localStorage.removeItem(`xv-cond-${tipo}`)
+      localStorage.removeItem(`xv-end-${tipo}`)
+      try { sessionStorage.removeItem('xv-geo-inicio') } catch {}
       toast.success(`Vistoria enviada! Protocolo #${res.protocolo}`)
       navigate('/x-vistoria/historico')
     } catch (err: any) {
@@ -171,6 +199,23 @@ function ExecConteudo({ tipo, def, geoInicio }: { tipo: string; def: any; geoIni
 
       <main className="flex-1 px-4 py-6 flex justify-center">
         <div className="w-full max-w-2xl space-y-3">
+          <div className="card p-3 space-y-2">
+            <input
+              type="text"
+              placeholder="Condomínio (opcional)"
+              value={condominioNome}
+              onChange={(e) => setCondominioNome(e.target.value)}
+              className="input text-sm"
+            />
+            <input
+              type="text"
+              placeholder="Endereço (opcional)"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+              className="input text-sm"
+            />
+          </div>
+
           {itens.length === 0 && (
             <div className="card p-8 text-center text-sm text-gray-500">
               Nenhum item ainda. Toque em <strong>+ Adicionar</strong> abaixo.

@@ -87,7 +87,8 @@ export default function SimplesDetailV2Page() {
                   <div className="text-[10px] tracking-widest uppercase text-gray-500">Vistoria simples</div>
                 </div>
               </div>
-              <h1 className="text-3xl font-extrabold text-gray-900 mt-3">{TIPO_LABEL[v.tipo] || v.tipo}</h1>
+              <h1 className="text-3xl font-extrabold text-gray-900 mt-3">{v.condominio_nome || TIPO_LABEL[v.tipo] || v.tipo}</h1>
+              <div className="text-sm text-gray-500 mt-1">{TIPO_LABEL[v.tipo] || v.tipo}{v.endereco ? ` · ${v.endereco}` : ''}</div>
             </div>
             <div className="text-right">
               <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">

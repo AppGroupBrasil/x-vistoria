@@ -4,6 +4,7 @@ import {
   ArrowLeft, LogOut, Camera, ListChecks, MessageSquareText,
   CheckSquare, ArrowLeftRight, Star,
 } from 'lucide-react'
+import GeoGate from '../../components/GeoGate'
 
 export const TIPOS = [
   { key: 'foto-descricao',    titulo: 'Foto e descrição',       desc: 'Tira foto, escreve descrição, repete.',                icon: Camera },
@@ -15,9 +16,22 @@ export const TIPOS = [
 ] as const
 
 export default function SimplesV2Page() {
+  return (
+    <GeoGate voltarPara="/x-vistoria">
+      {(geo) => <Conteudo geo={geo} />}
+    </GeoGate>
+  )
+}
+
+function Conteudo({ geo }: { geo: { lat: number; lng: number } }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const sair = () => { logout(); navigate('/login') }
+
+  const escolher = (key: string) => {
+    try { sessionStorage.setItem('xv-geo-inicio', JSON.stringify({ ...geo, ts: Date.now() })) } catch {}
+    navigate(`/x-vistoria/simples/${key}`)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -48,7 +62,7 @@ export default function SimplesV2Page() {
             {TIPOS.map((t) => (
               <button
                 key={t.key}
-                onClick={() => navigate(`/x-vistoria/simples/${t.key}`)}
+                onClick={() => escolher(t.key)}
                 className="text-left p-5 rounded-2xl bg-gradient-to-br from-brand-green to-emerald-700 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl active:scale-95 transition-all"
               >
                 <t.icon size={36} strokeWidth={1.75} className="mb-3" />

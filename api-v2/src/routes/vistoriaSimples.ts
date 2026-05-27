@@ -14,12 +14,40 @@ const criarSchema = z.object({
   lng_inicio: z.number().optional(),
   lat_fim: z.number().optional(),
   lng_fim: z.number().optional(),
+  condominio_nome: z.string().optional(),
+  endereco: z.string().optional(),
 })
 
-export default async function vistoriaSimplesRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', app.autenticar)
+const TIPO_LABEL: Record<string, string> = {
+  foto_descricao: 'Foto e descrição',
+  checklist: 'Checklist',
+  pergunta_resposta: 'Pergunta e Resposta',
+  conformidade: 'Conformidade',
+  antes_depois: 'Antes e Depois',
+  avaliacao: 'Avaliação',
+}
 
-  app.post('/vistoria-simples', async (req, reply) => {
+function serializar(v: any, empresaNome?: string) {
+  return {
+    id: v.id,
+    tipo: v.tipo,
+    tipo_label: TIPO_LABEL[v.tipo] || v.tipo,
+    protocolo: v.protocolo,
+    itens: v.itens,
+    condominio_nome: v.condominioNome,
+    endereco: v.endereco,
+    vistoriador_nome: v.vistoriador?.nome,
+    iniciada_em: v.iniciadaEm,
+    finalizada_em: v.finalizadaEm,
+    lat_inicio: v.latInicio, lng_inicio: v.lngInicio,
+    lat_fim: v.latFim, lng_fim: v.lngFim,
+    criado_em: v.criadoEm,
+    empresa_nome: empresaNome,
+  }
+}
+
+export default async function vistoriaSimplesRoutes(app: FastifyInstance) {
+  app.post('/vistoria-simples', { preHandler: [app.autenticar] }, async (req, reply) => {
     const parsed = criarSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ erro: 'Dados inválidos', detalhe: parsed.error.flatten() })
     const d = parsed.data
@@ -31,6 +59,8 @@ export default async function vistoriaSimplesRoutes(app: FastifyInstance) {
         tipo: d.tipo,
         protocolo: gerarProtocolo(),
         itens: d.itens,
+        condominioNome: d.condominio_nome,
+        endereco: d.endereco,
         iniciadaEm: new Date(d.iniciada_em),
         finalizadaEm: new Date(d.finalizada_em),
         latInicio: d.lat_inicio,
@@ -42,24 +72,24 @@ export default async function vistoriaSimplesRoutes(app: FastifyInstance) {
     return reply.code(201).send({ id: v.id, protocolo: v.protocolo })
   })
 
-  app.get('/vistoria-simples/:id', async (req, reply) => {
+  app.get('/vistoria-simples/:id', { preHandler: [app.autenticar] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const v = await prisma.vistoriaSimples.findFirst({
       where: { id, empresaId: req.usuario.empresaId },
       include: { vistoriador: true },
     })
     if (!v) return reply.code(404).send({ erro: 'Não encontrada' })
-    return {
-      id: v.id,
-      tipo: v.tipo,
-      protocolo: v.protocolo,
-      itens: v.itens,
-      vistoriador_nome: v.vistoriador.nome,
-      iniciada_em: v.iniciadaEm,
-      finalizada_em: v.finalizadaEm,
-      lat_inicio: v.latInicio, lng_inicio: v.lngInicio,
-      lat_fim: v.latFim, lng_fim: v.lngFim,
-      criado_em: v.criadoEm,
-    }
+    return serializar(v)
+  })
+
+  // Versão pública (sem autenticação) — usada pelo QR Code
+  app.get('/publico/vistoria-simples/:id', async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const v = await prisma.vistoriaSimples.findUnique({
+      where: { id },
+      include: { vistoriador: true, empresa: true },
+    })
+    if (!v) return reply.code(404).send({ erro: 'Não encontrada' })
+    return serializar(v, v.empresa?.nome)
   })
 }

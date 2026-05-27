@@ -292,6 +292,8 @@ model VistoriaSimples {
   tipo          TipoVistoriaSimples
   protocolo     String   @unique
   itens         Json
+  condominioNome String? @map("condominio_nome")
+  endereco       String?
   iniciadaEm    DateTime @map("iniciada_em")
   finalizadaEm  DateTime @map("finalizada_em")
   latInicio     Float?   @map("lat_inicio")
