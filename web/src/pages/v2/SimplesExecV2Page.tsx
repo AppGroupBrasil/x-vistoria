@@ -306,16 +306,16 @@ function FotoInput({ value, onChange, label = 'Foto' }: { value: Foto | null; on
 function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Partial<ItemBase>) => void }) {
   const [aberto, setAberto] = useState(!!item.ocFoto || !!item.ocDescricao)
   return (
-    <div className="border-t border-gray-100 pt-2 mt-2">
+    <>
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="text-xs font-bold text-gray-500 hover:text-gray-700 flex items-center gap-1"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold shadow-md shadow-red-500/30 hover:bg-red-700 active:scale-95"
       >
-        <AlertTriangle size={12} /> {aberto ? 'Ocultar ocorrência' : 'Anexar ocorrência (opcional)'}
+        <AlertTriangle size={14} /> {aberto ? 'Ocultar ocorrência' : 'Adicionar ocorrência'}
       </button>
       {aberto && (
-        <div className="mt-2 space-y-2">
+        <div className="basis-full w-full mt-2 space-y-2">
           <FotoInput value={item.ocFoto ?? null} onChange={(f) => onPatch({ ocFoto: f })} label="Foto da ocorrência" />
           <textarea
             placeholder="Descrição da ocorrência"
@@ -325,7 +325,7 @@ function OcorrenciaToggle({ item, onPatch }: { item: ItemBase; onPatch: (p: Part
           />
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -342,7 +342,10 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
       {/* Conteúdo principal por tipo */}
       {tipo === 'foto-descricao' && (
         <>
-          <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} />
+          <div className="flex flex-wrap items-start gap-2">
+            <FotoInput value={item.foto} onChange={(f) => onPatch({ foto: f })} />
+            <OcorrenciaToggle item={item} onPatch={onPatch} />
+          </div>
           <textarea placeholder="Descrição" rows={2}
             value={item.descricao} onChange={(e) => onPatch({ descricao: e.target.value })}
             className="input text-sm resize-none" />
@@ -450,7 +453,11 @@ function ItemCard({ tipo, item, idx, onPatch, onRemove }: {
         </>
       )}
 
-      <OcorrenciaToggle item={item} onPatch={onPatch} />
+      {tipo !== 'foto-descricao' && (
+        <div className="flex flex-wrap items-start gap-2">
+          <OcorrenciaToggle item={item} onPatch={onPatch} />
+        </div>
+      )}
     </div>
   )
 }
