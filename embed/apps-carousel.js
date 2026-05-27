@@ -41,7 +41,8 @@
     '</section>';
 
   var css =
-    '.agb-section{background:#fff;padding:60px 0 80px;border-top:1px solid #e2e8f0;overflow:hidden;font-family:Inter,system-ui,sans-serif}' +
+    '.agb-section{position:relative;z-index:1;isolation:isolate;clear:both;display:block;width:100%;box-sizing:border-box;background:#fff;padding:100px 0 120px;margin:60px 0;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;overflow:hidden;font-family:Inter,system-ui,sans-serif}' +
+    '.agb-section *{box-sizing:border-box}' +
     '.agb-hd{text-align:center;max-width:720px;margin:0 auto 32px;padding:0 5%}' +
     '.agb-label{display:inline-block;background:linear-gradient(135deg,rgba(0,214,143,.1),rgba(59,130,246,.1));color:#1A3A5C;border-radius:100px;padding:5px 16px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}' +
     '.agb-title{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;color:#0B1D35;line-height:1.2;margin:0 0 14px}' +
