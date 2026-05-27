@@ -10,7 +10,7 @@ import { extrairErro } from '../api/erros'
 import toast from 'react-hot-toast'
 import {
   ArrowLeft, Check, X, Camera, AlertTriangle, MessageSquare, Send,
-  Loader2, Trash2, Plus
+  Loader2, Trash2, Plus, MapPin
 } from 'lucide-react'
 import clsx from 'clsx'
 import MensagemModal from '../components/MensagemModal'
@@ -83,14 +83,27 @@ export default function ChecklistPage() {
   const [fotoForId, setFotoForId] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [obsFinal, setObsFinal] = useState('')
+  const [geoStatus, setGeoStatus] = useState<'pendente' | 'autorizado' | 'negado'>('pendente')
+  const [geoInicio, setGeoInicio] = useState<{ lat: number; lng: number } | null>(null)
+
+  const pedirLocalizacao = async () => {
+    setGeoStatus('pendente')
+    const g = await obterLocalizacao()
+    if (g) {
+      setGeoInicio(g)
+      setGeoStatus('autorizado')
+    } else {
+      setGeoStatus('negado')
+    }
+  }
+
+  useEffect(() => { pedirLocalizacao() }, [])
 
   useEffect(() => {
-    if (visita?.status === 'nao_iniciada') {
-      obterLocalizacao().then((geo) => {
-        statusMut.mutateAsync({ acao: 'iniciar', body: geo ?? {} }).catch(() => {})
-      })
+    if (visita?.status === 'nao_iniciada' && geoStatus === 'autorizado' && geoInicio) {
+      statusMut.mutateAsync({ acao: 'iniciar', body: geoInicio }).catch(() => {})
     }
-  }, [visita?.status])
+  }, [visita?.status, geoStatus, geoInicio])
 
   useEffect(() => { if (templateData) setTemplate(templateData) }, [templateData])
   useEffect(() => {
@@ -186,7 +199,12 @@ export default function ChecklistPage() {
     setEnviando(true)
     try {
       const geo = await obterLocalizacao()
-      await statusMut.mutateAsync({ acao: 'finalizar', body: { observacoes: obsFinal, ...(geo || {}) } })
+      if (!geo) {
+        toast.error('Localização obrigatória para enviar a vistoria. Autorize e tente de novo.')
+        setGeoStatus('negado')
+        return
+      }
+      await statusMut.mutateAsync({ acao: 'finalizar', body: { observacoes: obsFinal, ...geo } })
       toast.success('Vistoria enviada!')
       navigate('/')
     } catch (err: any) { toast.error(extrairErro(err, 'Erro ao finalizar.')) }
@@ -195,6 +213,45 @@ export default function ChecklistPage() {
 
   const fotosDe = (perguntaId: string) => (Array.isArray(fotos) ? fotos : []).filter((f: any) => f.pergunta_id === perguntaId)
   const pendDe = (perguntaId: string) => (Array.isArray(pendencias) ? pendencias : []).filter((p: any) => p.pergunta_id === perguntaId)
+
+  if (geoStatus !== 'autorizado') {
+    return (
+      <div className="min-h-screen bg-brand-navy flex flex-col items-center justify-center px-6 text-center text-white">
+        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
+          <MapPin size={40} className="text-brand-green" />
+        </div>
+        {geoStatus === 'pendente' ? (
+          <>
+            <h1 className="text-xl font-bold mb-2">Aguardando localização…</h1>
+            <p className="text-white/70 text-sm mb-6">Autorize a localização no aviso do navegador.</p>
+            <Loader2 size={28} className="animate-spin text-white/70" />
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold mb-2">Localização necessária</h1>
+            <p className="text-white/70 text-sm mb-6 max-w-xs">
+              Para garantir que a vistoria foi feita no local, é obrigatório autorizar o acesso à sua localização.
+            </p>
+            <button
+              onClick={pedirLocalizacao}
+              className="w-full max-w-xs bg-brand-green hover:bg-emerald-600 text-white py-3 rounded-xl font-bold active:scale-95"
+            >
+              Tentar de novo
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-3 text-white/60 text-sm hover:text-white"
+            >
+              Voltar
+            </button>
+            <p className="text-white/40 text-[11px] mt-6 max-w-xs">
+              Se você negou antes, abra as configurações do navegador para este site e libere "Localização".
+            </p>
+          </>
+        )}
+      </div>
+    )
+  }
 
   if (!template) {
     return (
