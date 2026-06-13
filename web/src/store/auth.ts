@@ -19,6 +19,7 @@ interface AuthState {
   user: User | null
   token: string | null
   login: (email: string, senha: string) => Promise<void>
+  loginSso: (token: string) => Promise<void>
   logout: () => void
 }
 
@@ -30,6 +31,12 @@ export const useAuth = create<AuthState>()(
 
       login: async (email, senha) => {
         const res: any = await api.post('/auth/login', { email, senha })
+        localStorage.setItem('token', res.access_token)
+        set({ user: res.usuario, token: res.access_token })
+      },
+
+      loginSso: async (token) => {
+        const res: any = await api.post('/sso', { token })
         localStorage.setItem('token', res.access_token)
         set({ user: res.usuario, token: res.access_token })
       },

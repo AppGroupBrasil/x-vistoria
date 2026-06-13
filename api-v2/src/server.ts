@@ -8,6 +8,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 
 import authPlugin from './plugins/auth.js'
 import authRoutes from './routes/auth.js'
+import ssoRoutes from './routes/sso.js'
 import visitasRoutes from './routes/visitas.js'
 import checklistRoutes from './routes/checklist.js'
 import condominiosRoutes from './routes/condominios.js'
@@ -44,6 +45,7 @@ app.get('/health', async () => ({ ok: true, ts: new Date().toISOString() }))
 
 await app.register(async (api) => {
   await api.register(authRoutes)
+  await api.register(ssoRoutes)
   await api.register(visitasRoutes)
   await api.register(checklistRoutes)
   await api.register(condominiosRoutes)

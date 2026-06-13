@@ -1,5 +1,6 @@
 (function () {
   var BASE = 'https://appgroupbrasil.com.br/embed';
+  var IMG_V = '3'; // bump quando substituir logos para invalidar cache
 
   var APPS = [
     { nome: 'App Avisos',          arquivo: 'avisos.png',             link: 'https://appavisos.com.br',              host: 'appavisos.com.br' },
@@ -11,7 +12,8 @@
     { nome: 'Manutenção X',        arquivo: 'manutencao-x.png',       link: 'https://manutencaox.com.br',            host: 'manutencaox.com.br' },
     { nome: 'App Manutenção',      arquivo: 'manutencao.png',         link: 'https://appmanutencao.com.br',          host: 'appmanutencao.com.br' },
     { nome: 'Portaria X',          arquivo: 'portaria-x.png',         link: 'https://www.portariax.com.br',          host: 'portariax.com.br' },
-    { nome: 'App Reserva',         arquivo: 'reserva.png',            link: 'https://appreserva.com.br',             host: 'appreserva.com.br' },
+    { nome: 'App Reserva',         arquivo: 'reserva.png',            link: '',                                      host: 'appreserva.com.br',     emBreve: true },
+    { nome: 'App Condomínio',      arquivo: 'condominio.png',         link: '',                                      host: 'appcondominio.com.br',  emBreve: true },
     { nome: 'Simples Manutenção',  arquivo: 'simples-manutencao.png', link: 'https://simplesmanutencao.com.br',      host: 'simplesmanutencao.com.br' }
   ];
 
@@ -19,9 +21,15 @@
   var lista = APPS.filter(function (a) { return a.host !== hostAtual; });
 
   function cartao(a, ariaHidden) {
+    var img = '<img src="' + BASE + '/apps/' + a.arquivo + '?v=' + IMG_V + '" alt="' + (ariaHidden ? '' : a.nome) + '" loading="lazy"/>';
+    var nome = '<span class="agb-nome">' + a.nome + '</span>';
+    if (a.emBreve) {
+      return '<div class="agb-card agb-em-breve"' + (ariaHidden ? ' aria-hidden="true"' : '') + '>' +
+        '<span class="agb-badge">Em breve</span>' + img + nome +
+      '</div>';
+    }
     return '<a href="' + a.link + '" target="_blank" rel="noopener"' + (ariaHidden ? ' aria-hidden="true"' : '') + '>' +
-      '<img src="' + BASE + '/apps/' + a.arquivo + '" alt="' + (ariaHidden ? '' : a.nome) + '" loading="lazy"/>' +
-      '<span class="agb-nome">' + a.nome + '</span>' +
+      img + nome +
     '</a>';
   }
 
@@ -50,8 +58,11 @@
     '.agb-marquee{position:relative;width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}' +
     '.agb-track{display:flex;gap:32px;width:max-content;animation:agb-scroll 60s linear infinite;align-items:center;padding:10px 0}' +
     '.agb-marquee:hover .agb-track{animation-play-state:paused}' +
-    '.agb-track a{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:200px;padding:18px 12px 14px;border-radius:22px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;text-decoration:none}' +
+    '.agb-track a,.agb-track .agb-card{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:200px;padding:18px 12px 14px;border-radius:22px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;text-decoration:none;position:relative}' +
     '.agb-track a:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,214,143,.25)}' +
+    '.agb-em-breve{opacity:.7;cursor:default}' +
+    '.agb-em-breve img{filter:grayscale(.4)}' +
+    '.agb-badge{position:absolute;top:10px;right:10px;z-index:5;background:#0B1D35;color:#fff;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:100px;box-shadow:0 2px 6px rgba(0,0,0,.18)}' +
     '.agb-track img{width:144px;height:144px;object-fit:contain}' +
     '.agb-track .agb-nome{margin-top:10px;font-size:.82rem;font-weight:700;color:#0B1D35;text-align:center;line-height:1.2}' +
     '@keyframes agb-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}' +

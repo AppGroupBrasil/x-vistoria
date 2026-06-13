@@ -8,6 +8,7 @@ import BrandingApplier from './components/BrandingApplier'
 import LoginPage from './pages/LoginPage'
 
 // Lazy-loaded pages (code-splitting)
+const SsoPage = lazy(() => import('./pages/SsoPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const EsqueciSenhaPage = lazy(() => import('./pages/EsqueciSenhaPage'))
 const RedefinirSenhaPage = lazy(() => import('./pages/RedefinirSenhaPage'))
@@ -51,6 +52,7 @@ export default function App() {
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/sso" element={<SsoPage />} />
 
       {/* X Vistoria — nova versão simplificada, em construção */}
       <Route
