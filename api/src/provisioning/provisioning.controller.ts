@@ -82,6 +82,34 @@ export class ProvisioningController {
     return { ok: true, usuario_id: body.usuario_id, empresa_id: empresaId };
   }
 
+  // Receiver do push de cadastro da central (Fase 2 SSO). Espelho read-only:
+  // usuarios (casa por email). upsert atualiza nome; delete revoga (ativo=false).
+  // Idempotente; nunca cria usuário (entra por SSO/provisionamento).
+  @Post('cadastro')
+  async cadastro(
+    @Headers('x-provisioning-secret') secret: string,
+    @Body() ev: any,
+  ) {
+    const expected = this.config.get<string>('PROVISIONING_SECRET');
+    if (!expected || secret !== expected) {
+      throw new ForbiddenException('Assinatura de provisionamento inválida');
+    }
+    const d = ev?.dados || {};
+    if (ev?.entidade === 'morador' || ev?.entidade === 'funcionario') {
+      const email = String(d.email || '').toLowerCase().trim();
+      if (!email) return { ok: true, ignorado: 'sem email' };
+      if (ev.acao === 'delete') {
+        await this.sql`UPDATE usuarios SET ativo = false WHERE lower(email) = ${email}`;
+        return { ok: true };
+      }
+      if (d.nome) {
+        await this.sql`UPDATE usuarios SET nome = ${d.nome}, ativo = true WHERE lower(email) = ${email}`;
+      }
+      return { ok: true };
+    }
+    return { ok: true, ignorado: ev?.entidade };
+  }
+
   private mapearRole(role: string): string {
     const r = (role || '').toLowerCase();
     if (r === 'admin' || r === 'superadmin') return 'admin';
