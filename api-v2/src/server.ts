@@ -30,6 +30,7 @@ import notificacoesRoutes from './routes/notificacoes.js'
 import empresaRoutes from './routes/empresa.js'
 import assinaturaRoutes from './routes/assinatura.js'
 import trackingRoutes from './routes/tracking.js'
+import provisioningRoutes from './routes/provisioning.js'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -46,6 +47,7 @@ app.get('/health', async () => ({ ok: true, ts: new Date().toISOString() }))
 await app.register(async (api) => {
   await api.register(authRoutes)
   await api.register(ssoRoutes)
+  await api.register(provisioningRoutes)
   await api.register(visitasRoutes)
   await api.register(checklistRoutes)
   await api.register(condominiosRoutes)
