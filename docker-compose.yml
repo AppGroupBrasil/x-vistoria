@@ -51,6 +51,7 @@ services:
       DATABASE_URL: postgresql://xvistoria:${DB_PASSWORD}@db:5432/xvistoria_v2
       JWT_SECRET: ${JWT_SECRET}
       AUTH_CENTRAL_JWT_SECRET: ${AUTH_CENTRAL_JWT_SECRET}
+      PROVISIONING_SECRET: ${PROVISIONING_SECRET}
       UPLOAD_DIR: /app/uploads
       PUBLIC_URL: https://api.xvistoria.com.br
       SMTP_HOST: ${SMTP_HOST:-smtp.resend.com}
